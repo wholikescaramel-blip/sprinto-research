@@ -22,7 +22,8 @@ from .pipeline import (Services, draft_company, poc_company, qualify_company, re
                        run_pipeline)
 from .review import REASON_TAGS, record_review
 from .send import SendBlocked, SendError, deliver, public_mode
-from .util import registrable_domain
+from .util import mask_emails, registrable_domain
+from . import samples as samples_mod
 
 WEB = Path(__file__).resolve().parents[2] / "web"
 app = FastAPI(title="Sprinto outreach")
@@ -56,17 +57,7 @@ def _cap(db: DB, name: str, env_key: str, default: int) -> None:
 
 
 # Contacts' addresses came from Hunter. On the public app they are shown masked (p***@acme.com).
-_EMAIL_RE = re.compile(r"([A-Za-z0-9._%+-])[A-Za-z0-9._%+-]*(@[A-Za-z0-9.-]+\.[A-Za-z]{2,})")
-
-
-def _mask(o):
-    if isinstance(o, str):
-        return _EMAIL_RE.sub(lambda m: m.group(1) + "***" + m.group(2), o)
-    if isinstance(o, list):
-        return [_mask(x) for x in o]
-    if isinstance(o, dict):
-        return {k: _mask(v) for k, v in o.items()}
-    return o
+_mask = mask_emails
 
 
 @app.middleware("http")
@@ -98,6 +89,8 @@ def status():
         "hunter_used": db.counter("hunter", period),
         "mail_ready": bool(config.env("RESEND_API_KEY")),
         "demo": "demo" in str(config.db_path()),
+        "samples_available": samples_mod.available(),
+        "samples_loaded": samples_mod.loaded_count(db),
         "companies": db.one("SELECT COUNT(*) n FROM companies")["n"],
         "qualifications": q,
         "drafts": counts,
@@ -129,6 +122,8 @@ def companies():
                      "email_status": poc.email_status} if poc else None),
             "draft_status": drafts[-1]["status"] if drafts else None,
             "draft_id": drafts[-1]["id"] if drafts else None,
+            "can_draft": bool(q and q.passes_threshold and not any(x["status"] in ACTIVE_DRAFT for x in drafts)),
+            "can_unflag": bool(q and q.decision == "GO_FLAGGED"),
             "stages": stages, "n_facts": len(db.facts(d)),
         })
     return out
@@ -179,7 +174,7 @@ def company(domain: str):
 # ------------------------------------------------------------------ run
 class RunReq(BaseModel):
     inputs: str = ""          # one domain or company name per line; empty = ICP search
-    min_companies: int = 10
+    min_companies: int = 3
     limit: Optional[int] = None
 
 
@@ -316,6 +311,77 @@ def step_draft(req: StepReq):
     did = draft_company(svc, dom) if poc.status != "no_named_poc" else None
     d = db.get_draft(did) if did else None
     return {"domain": dom, "poc_status": poc.status, "draft_id": did, "draft_status": d["status"] if d else None}
+
+
+# ------------------------------------------------------------------ sample results (real captured output)
+@app.post("/api/samples/load")
+def samples_load():
+    if not samples_mod.available():
+        raise HTTPException(404, "no sample file (seed/sample_results.json) in this deployment")
+    return {"ok": True, "loaded": samples_mod.load_samples(get_db())}
+
+
+@app.post("/api/samples/clear")
+def samples_clear():
+    return {"ok": True, "cleared": samples_mod.clear_samples(get_db())}
+
+
+# ------------------------------------------------------------------ per-company actions
+ACTIVE_DRAFT = ("pending_review", "blocked", "approved", "sent_test", "sent_live")
+
+
+def _draft_for(db: DB, dom: str) -> dict:
+    """(Re)generate the draft for a good-fit company. Older unsent drafts are marked 'superseded', never deleted.
+    Reuses the stored contact (no new Hunter search); looks one up only if there is none."""
+    svc = Services(db=db, llm=make_llm(), cfg=config.icp())
+    if db.get_poc(dom) is None:
+        poc_company(svc, dom)
+    db.x("UPDATE drafts SET status='superseded', updated_at=? WHERE domain=? AND status IN ('pending_review','blocked')",
+         (now(), dom))
+    did = draft_company(svc, dom)
+    d = db.get_draft(did) if did else None
+    return {"draft_id": did, "draft_status": d["status"] if d else None}
+
+
+@app.post("/api/company/{domain}/draft")
+def company_draft(domain: str):
+    """'Draft email': for a good-fit company that has no draft yet (e.g. Gemini was busy during the run)."""
+    dom = _domain_or_400(domain)
+    db = get_db()
+    q = db.get_qual(dom)
+    if q is None or not q.passes_threshold:
+        raise HTTPException(400, "this company is not a good fit yet; only GO / GO_FLAGGED companies get drafts")
+    _cap(db, "draft", "DAILY_DRAFT_CAP", 25)
+    try:
+        return {"ok": True, **_draft_for(db, dom)}
+    except Exception as e:
+        raise HTTPException(502, f"Could not draft right now: {str(e)[:200]}")
+
+
+@app.post("/api/company/{domain}/unflag")
+def company_unflag(domain: str):
+    """A human has checked a GO_FLAGGED company's unknowns by hand: mark it GO and regenerate its draft.
+    (Re-researching the company later re-evaluates it from the facts, so the flag may come back.)"""
+    from .models import Reason
+    dom = _domain_or_400(domain)
+    db = get_db()
+    q = db.get_qual(dom)
+    if q is None:
+        raise HTTPException(404, "unknown company")
+    if q.decision != "GO_FLAGGED":
+        raise HTTPException(400, "only a flagged (GO_FLAGGED) company can be unflagged")
+    q.decision, q.unknowns, q.confidence, q.passes_threshold = "GO", [], "human-verified", True
+    q.reasons.append(Reason(text="Unflagged by a reviewer after checking the unknowns by hand", fact_ids=[]))
+    db.save_qual(q)
+    out = {"ok": True, "decision": "GO", "draft_id": None, "draft_status": None, "draft_error": None}
+    try:
+        _cap(db, "draft", "DAILY_DRAFT_CAP", 25)
+        out.update(_draft_for(db, dom))
+    except HTTPException as e:
+        out["draft_error"] = e.detail
+    except Exception as e:  # the unflag itself already succeeded; say the draft can be retried
+        out["draft_error"] = f"Unflagged, but the draft failed ({str(e)[:140]}). Use Draft email to retry."
+    return out
 
 
 # ------------------------------------------------------------------ review + send

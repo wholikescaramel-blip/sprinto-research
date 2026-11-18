@@ -61,6 +61,7 @@ def test_input_file_splits_domains_and_names(tmp_path):
 def test_run_with_no_input_discovers_and_reports_shortfall_honestly(db):
     svc = Services(db=db, llm=SearchLLM(LEADS), fetcher=make_fetcher(db), news_fetch=lambda u: EMPTY_RSS,
                    resolver=OK, cfg=config.icp())
-    s = run_pipeline(svc, [], min_companies=10)
+    s = run_pipeline(svc, [], min_companies=10)  # asks for 10 good fits
     assert s["companies"] == 1  # only the verified lead was researched
-    assert any("only" in n and "requested 10" in n for n in s["notes"])  # not padded to 10
+    import re
+    assert any(re.search(r"found \d+ of the 10 good-fit", n) and "not padded" in n for n in s["notes"])  # honest shortfall

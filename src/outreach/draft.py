@@ -39,7 +39,8 @@ def pick_pain_points(llm: LLMClient, poc: Poc, facts: list[dict], library: dict)
     if not options:
         return []
     ids = {o["id"] for o in options}
-    prompt = (f"Recipient: {poc.name}, {poc.title} (role type: {role}).\n"
+    who = f"{poc.name}, {poc.title}" if poc.name else "an unnamed decision-maker (likely a founder or head of security)"
+    prompt = (f"Recipient: {who} (role type: {role}).\n"
               f"Pain point options (pick exactly 2 by pain_id):\n{json.dumps(options)}\n"
               f"Verified facts about their company:\n{json.dumps(facts)}\n"
               "For each pick give a one-sentence rationale and the fact_ids that make it plausible "
@@ -64,7 +65,11 @@ def build_draft_prompt(poc: Poc, facts: list[dict], sprinto: dict, pains: list[d
                        failures: list[str] | None = None) -> str:
     sfacts = [{"id": f["id"], "text": f["text"], "use_when": f.get("use_when", "")}
               for f in sprinto.get("facts", [])]
-    p = (f"Write a cold email to {poc.name} ({poc.title}). Greeting uses first name: {poc.first_name}.\n"
+    to = (f"Write a cold email to {poc.name} ({poc.title}). Greeting uses first name: {poc.first_name}.\n"
+          if poc.name else
+          "Write a cold email to a decision-maker whose name we do not know yet. greeting_name MUST be exactly "
+          "'there' (the email opens 'Hi there,'). Do not invent a name, a title or a gender.\n")
+    p = (to +
          f"Return JSON: subject, greeting_name, sentences[{{text,type(hook|pain|pitch|cta|other),fact_ids}}].\n"
          "Structure: ONE hook sentence built on a verified fact (type hook, cite its id); ONE pain point "
          "phrased as a question (type pain, cite company fact ids); ONE short pitch sentence (type pitch, "
@@ -99,7 +104,11 @@ def make_draft(db: DB, domain: str, llm: LLMClient, poc: Poc | None = None) -> i
     if poc is None or qual is None:
         raise RuntimeError("run qualify and poc first")
     if poc.status == "no_named_poc" or not poc.name:
-        return None
+        # Still draft (the company is a good fit): addressed "Hi there," and clearly marked as needing a contact.
+        # check_sendable refuses to send it until a named, verified contact is added.
+        poc = Poc(domain=domain, status="no_named_poc", name=None, title=None, email=poc.email,
+                  email_status="unverified", source=poc.source, role_type="founder_ceo",
+                  reason=poc.reason or "No named contact found yet.")
     rows = db.facts(domain)
     facts = fact_payload(rows)
     sprinto = config.sprinto_facts()
@@ -109,7 +118,7 @@ def make_draft(db: DB, domain: str, llm: LLMClient, poc: Poc | None = None) -> i
     names = [r["value"] for r in rows if r["field"] == "company_name"] + [domain.split(".")[0]]
     icp = config.icp()
     meta = dict(domain=domain, rubric_version=int(rub.get("version", 1)),
-                greeting_name=poc.first_name, poc=poc.model_dump_json())
+                greeting_name=poc.greeting, poc=poc.model_dump_json())
 
     if not has_hook(rows):
         return db.save_draft(subject="", body="", sentences="[]", pain_points="[]", status="blocked",
@@ -130,6 +139,8 @@ def make_draft(db: DB, domain: str, llm: LLMClient, poc: Poc | None = None) -> i
         failures = result.failures
     if poc.status == "needs_human_email":
         result.warnings.append("needs_human_email: no verified address; cannot be sent")
+    if poc.status == "no_named_poc":
+        result.warnings.append("needs_contact: no named contact found; add one before this can be sent")
     status = "pending_review" if result.passed else "blocked"
     body = assemble_body(draft, sprinto.get("signature", ""))
     return db.save_draft(subject=draft.subject, body=body,

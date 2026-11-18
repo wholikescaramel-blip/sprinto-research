@@ -34,6 +34,20 @@ _TYPO = str.maketrans({"‘": "'", "’": "'", "“": '"', "”": '"', "–": "-
 _MARKUP = re.compile(r"[*_`#>]+")
 
 
+_EMAIL_RE = re.compile(r"([A-Za-z0-9._%+-])[A-Za-z0-9._%+-]*(@[A-Za-z0-9.-]+\.[A-Za-z]{2,})")
+
+
+def mask_emails(o):
+    """'priya@acme.com' -> 'p***@acme.com' anywhere in a str / list / dict (used on public pages and in samples)."""
+    if isinstance(o, str):
+        return _EMAIL_RE.sub(lambda m: m.group(1) + "***" + m.group(2), o)
+    if isinstance(o, list):
+        return [mask_emails(x) for x in o]
+    if isinstance(o, dict):
+        return {k: mask_emails(v) for k, v in o.items()}
+    return o
+
+
 def norm_ws(s: str) -> str:
     """Whitespace + typography normalisation, applied identically to the snippet and the page text, so a model
     that returns straight quotes for curly ones (or drops **bold** marks) is not penalised. It never invents words."""

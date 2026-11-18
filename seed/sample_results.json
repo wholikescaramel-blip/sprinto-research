@@ -1,0 +1,705 @@
+{
+ "captured_at": "2026-11-18T16:45:11+00:00",
+ "note": "Real pipeline output (news -> scraper -> extraction -> Go/No-Go -> contact -> draft).",
+ "companies": [
+  {
+   "domain": "tavus.ai",
+   "name": "Tavus",
+   "source_url": "https://tavus.ai/",
+   "facts": [
+    {
+     "id": "F919068e",
+     "field": "cert_soc2",
+     "value": "SOC 2 (type not stated)",
+     "source_url": "https://tavus.ai/contact",
+     "snippet": "Tavus is SOC 2, GDPR, and HIPAA compliant from day one, with enterprise-grade security built into every deployment rather than added after.",
+     "fetched_at": "2026-11-18T15:19:12+00:00"
+    },
+    {
+     "id": "F18f33f3",
+     "field": "company_name",
+     "value": "Tavus",
+     "source_url": "https://tavus.ai/",
+     "snippet": "tavus, the human computing company",
+     "fetched_at": "2026-11-18T15:20:58+00:00"
+    },
+    {
+     "id": "F1bdc405",
+     "field": "enterprise_signal",
+     "value": "trust center",
+     "source_url": "https://tavus.ai/product",
+     "snippet": "Trust center",
+     "fetched_at": "2026-11-18T15:34:07+00:00"
+    },
+    {
+     "id": "F45584ad",
+     "field": "enterprise_signal",
+     "value": "trust center",
+     "source_url": "https://tavus.ai/pricing",
+     "snippet": "Trust center",
+     "fetched_at": "2026-11-18T15:19:05+00:00"
+    },
+    {
+     "id": "F527bd16",
+     "field": "enterprise_signal",
+     "value": "trust center",
+     "source_url": "https://tavus.ai/contact",
+     "snippet": "Trust center",
+     "fetched_at": "2026-11-18T15:19:12+00:00"
+    },
+    {
+     "id": "F6d8b543",
+     "field": "enterprise_signal",
+     "value": "trust center",
+     "source_url": "https://tavus.ai/",
+     "snippet": "Trust center",
+     "fetched_at": "2026-11-18T15:19:01+00:00"
+    },
+    {
+     "id": "Fc5af093",
+     "field": "enterprise_signal",
+     "value": "Enterprise pricing tier",
+     "source_url": "https://tavus.ai/pricing",
+     "snippet": "Enterprise",
+     "fetched_at": "2026-11-18T15:19:05+00:00"
+    },
+    {
+     "id": "Ffb9002a",
+     "field": "enterprise_signal",
+     "value": "trust center",
+     "source_url": "https://tavus.ai/careers",
+     "snippet": "Trust center",
+     "fetched_at": "2026-11-18T15:19:06+00:00"
+    },
+    {
+     "id": "F28bc87d",
+     "field": "eu_regulated",
+     "value": "Regeneron Pharmaceuticals",
+     "source_url": "https://tavus.ai/",
+     "snippet": "MLG / Regeneron Pharmaceuticals",
+     "fetched_at": "2026-11-18T15:34:14+00:00"
+    },
+    {
+     "id": "F59bdd2a",
+     "field": "eu_regulated",
+     "value": "GDPR",
+     "source_url": "https://tavus.ai/contact",
+     "snippet": "Tavus is SOC 2, GDPR, and HIPAA compliant from day one, with enterprise-grade security built into every deployment rather than added after.",
+     "fetched_at": "2026-11-18T15:19:12+00:00"
+    },
+    {
+     "id": "Fae9eb3e",
+     "field": "eu_regulated",
+     "value": "London and Munich",
+     "source_url": "https://tavus.ai/careers",
+     "snippet": "Our HQ is in San Francisco, with teams in London and Munich, and exceptional humans around the world.",
+     "fetched_at": "2026-11-18T15:20:58+00:00"
+    },
+    {
+     "id": "Fc371e83",
+     "field": "funding_stage",
+     "value": "Series A",
+     "source_url": "https://news.google.com/rss/articles/CBMickFVX3lxTFA1VDBoeHNUZUMySEdaaTVMbk4td3dkSjJhelhNbU1jMFFLdDh2VGtrMEo5eGlVQ1pud21OLXRGU2k0V21Vd3pvdnQ1Ty1KOVBYTEI4MUNQcHExZ2p6VlJUMTQ3RE9yY1RQWHo5UW50OVprUQ?oc=5",
+     "snippet": "Tavus Raises $18M Series A - citybiz",
+     "fetched_at": "2026-11-18T15:19:01+00:00"
+    },
+    {
+     "id": "F559eb98",
+     "field": "is_b2b_saas",
+     "value": "true",
+     "source_url": "https://tavus.ai/",
+     "snippet": "Build advanced and deeply customized PAL experiences with APIs for real-time, face-to-face AI conversations.",
+     "fetched_at": "2026-11-18T15:20:58+00:00"
+    },
+    {
+     "id": "F8704acb",
+     "field": "is_b2b_saas",
+     "value": "true",
+     "source_url": "https://tavus.ai/pricing",
+     "snippet": "Developers: Build conversations that scale",
+     "fetched_at": "2026-11-18T15:34:14+00:00"
+    },
+    {
+     "id": "F0019f55",
+     "field": "named_customer",
+     "value": "Med Learning Group",
+     "source_url": "https://tavus.ai/",
+     "snippet": "Med Learning Group built Ruby, the world's first AI clinical consultant for cSCC.",
+     "fetched_at": "2026-11-18T15:20:58+00:00"
+    },
+    {
+     "id": "F2e0749b",
+     "field": "named_customer",
+     "value": "MLG / Regeneron Pharmaceuticals",
+     "source_url": "https://tavus.ai/",
+     "snippet": "MLG / Regeneron Pharmaceuticals",
+     "fetched_at": "2026-11-18T15:20:58+00:00"
+    },
+    {
+     "id": "F36d3c65",
+     "field": "named_customer",
+     "value": "Orum",
+     "source_url": "https://tavus.ai/",
+     "snippet": "Orum built Aurora on Tavus to run AI sales role-play, and it's now live for every user.",
+     "fetched_at": "2026-11-18T15:20:58+00:00"
+    },
+    {
+     "id": "F4087a09",
+     "field": "named_customer",
+     "value": "Regeneron Pharmaceuticals",
+     "source_url": "https://tavus.ai/",
+     "snippet": "MLG / Regeneron Pharmaceuticals",
+     "fetched_at": "2026-11-18T15:34:14+00:00"
+    },
+    {
+     "id": "Fc12f17f",
+     "field": "named_customer",
+     "value": "Salesforce",
+     "source_url": "https://tavus.ai/",
+     "snippet": "Salesforce built Piper, a real-time AI sales development rep, on Tavus.",
+     "fetched_at": "2026-11-18T15:20:58+00:00"
+    },
+    {
+     "id": "Fd94104e",
+     "field": "person",
+     "value": "Bob Aspell | VP of Product, Orum",
+     "source_url": "https://tavus.ai/",
+     "snippet": "Bob Aspell, VP of Product, Orum",
+     "fetched_at": "2026-11-18T15:20:58+00:00"
+    },
+    {
+     "id": "F34c882b",
+     "field": "product_description",
+     "value": "Build real-time, lifelike AI agents that can see, hear, respond, and even look like us.",
+     "source_url": "https://tavus.ai/",
+     "snippet": "Build real-time, lifelike AI agents that can see, hear, respond, and even look like us.",
+     "fetched_at": "2026-11-18T15:20:58+00:00"
+    }
+   ],
+   "qualification": {
+    "domain": "tavus.ai",
+    "decision": "GO",
+    "score": 6.0,
+    "confidence": "high",
+    "reasons": [
+     {
+      "text": "B2B SaaS confirmed",
+      "fact_ids": [
+       "F559eb98",
+       "F8704acb"
+      ]
+     },
+     {
+      "text": "Existing certification noted (weaker fit if complete): SOC 2 (type not stated)",
+      "fact_ids": [
+       "F919068e"
+      ]
+     },
+     {
+      "text": "Compliance trigger: Enterprise/compliance-pressure signal",
+      "fact_ids": [
+       "F1bdc405"
+      ]
+     },
+     {
+      "text": "Stage in ICP: Series A",
+      "fact_ids": [
+       "Fc371e83"
+      ]
+     },
+     {
+      "text": "EU/regulated signal: Regeneron Pharmaceuticals",
+      "fact_ids": [
+       "F28bc87d"
+      ]
+     }
+    ],
+    "unknowns": [],
+    "passes_threshold": true,
+    "rubric_version": 1
+   },
+   "poc": {
+    "domain": "tavus.ai",
+    "status": "no_named_poc",
+    "name": null,
+    "title": null,
+    "email": null,
+    "email_status": "unverified",
+    "source": null,
+    "confidence": null,
+    "verification": null,
+    "role_type": null,
+    "reason": "No named decision-maker found; hand to a human.",
+    "guessed_email": null
+   },
+   "drafts": [
+    {
+     "subject": "Security reviews for Tavus",
+     "body": "Hi there,\n\nI saw that Tavus works with companies like Salesforce.\n\nAre deals ever blocked or delayed by customer security reviews?\n\nSprinto lets you launch a Trust Center and complete security questionnaires in minutes.\n\nWould you be open to seeing a quick walkthrough this week?\n\nBest,\nKay Dee\nSprinto",
+     "sentences": "[{\"text\": \"I saw that Tavus works with companies like Salesforce.\", \"type\": \"hook\", \"fact_ids\": [\"F18f33f3\", \"Fc12f17f\"]}, {\"text\": \"Are deals ever blocked or delayed by customer security reviews?\", \"type\": \"pain\", \"fact_ids\": [\"Fc5af093\", \"Fc12f17f\", \"F4087a09\"]}, {\"text\": \"Sprinto lets you launch a Trust Center and complete security questionnaires in minutes.\", \"type\": \"pitch\", \"fact_ids\": [\"S5\"]}, {\"text\": \"Would you be open to seeing a quick walkthrough this week?\", \"type\": \"cta\", \"fact_ids\": []}]",
+     "pain_points": "[{\"id\": \"ceo_deals\", \"text\": \"Deals blocked or delayed by customer security reviews\", \"rationale\": \"Since Tavus sells enterprise tiers and works with large names like Salesforce and Regeneron Pharmaceuticals, closing enterprise deals often requires navigating strict security reviews.\", \"fact_ids\": [\"Fc5af093\", \"Fc12f17f\", \"F4087a09\"]}, {\"id\": \"ceo_focus\", \"text\": \"Compliance work distracting a small team from the product\", \"rationale\": \"As a growing Series A company building complex real-time AI agents, leadership and engineering teams need to stay focused on core product development rather than getting bogged down in compliance tasks.\", \"fact_ids\": [\"Fc371e83\", \"F34c882b\"]}]",
+     "greeting_name": "there",
+     "rubric_version": 1,
+     "status": "pending_review",
+     "check_result": "{\"passed\":true,\"failures\":[],\"warnings\":[\"body is 43 words (target 80-120)\",\"needs_contact: no named contact found; add one before this can be sent\"]}",
+     "poc": "{\"domain\":\"tavus.ai\",\"status\":\"no_named_poc\",\"name\":null,\"title\":null,\"email\":null,\"email_status\":\"unverified\",\"source\":null,\"confidence\":null,\"verification\":null,\"role_type\":\"founder_ceo\",\"reason\":\"No named decision-maker found; hand to a human.\",\"guessed_email\":null}"
+    }
+   ]
+  },
+  {
+   "domain": "stability.ai",
+   "name": "Stability AI",
+   "source_url": "https://stability.ai/",
+   "facts": [
+    {
+     "id": "Faf11ef5",
+     "field": "company_name",
+     "value": "Stability AI",
+     "source_url": "https://stability.ai/",
+     "snippet": "\u00a9 Stability AI Ltd, 2026",
+     "fetched_at": "2026-11-18T16:35:08+00:00"
+    },
+    {
+     "id": "F0b4f485",
+     "field": "enterprise_signal",
+     "value": "trust center",
+     "source_url": "https://stability.ai/company",
+     "snippet": "Trust Center",
+     "fetched_at": "2026-11-18T16:35:01+00:00"
+    },
+    {
+     "id": "F28f74e2",
+     "field": "enterprise_signal",
+     "value": "trust center",
+     "source_url": "https://stability.ai/careers",
+     "snippet": "Trust Center",
+     "fetched_at": "2026-11-18T16:34:59+00:00"
+    },
+    {
+     "id": "F98a3088",
+     "field": "enterprise_signal",
+     "value": "trust center",
+     "source_url": "https://trust.stability.ai/",
+     "snippet": "Stability AI Trust Center",
+     "fetched_at": "2026-11-18T16:35:02+00:00"
+    },
+    {
+     "id": "Fdf54563",
+     "field": "enterprise_signal",
+     "value": "trust center",
+     "source_url": "https://stability.ai/",
+     "snippet": "Trust Center",
+     "fetched_at": "2026-11-18T16:34:57+00:00"
+    },
+    {
+     "id": "Fbb191fe",
+     "field": "funding_stage",
+     "value": "Series B",
+     "source_url": "https://news.google.com/rss/articles/CBMihwFBVV95cUxPWXRWeFMwaUIzbkV1WWRZcmxIZmpyVjlVLWhEaXBad2xqQVBTdUxXVjZQcTVfbzFFanNNUGRnZnBTTXJ1dkhldXRrTzI0eS1OdzZBdXZKWkc2cXBsdmJGQTRiZVh1ckJsQUNYSVJLWkxMbFhVVnc5Y3pkeUI1aUtLeC1mOTl1UVU?oc=5",
+     "snippet": "Stability AI Raises $76M in Series B Funding - FinSMEs",
+     "fetched_at": "2026-11-18T16:34:57+00:00"
+    },
+    {
+     "id": "F06d9483",
+     "field": "generic_inbox",
+     "value": "p***@stability.ai",
+     "source_url": "https://stability.ai/careers",
+     "snippet": "p***@stability.ai",
+     "fetched_at": "2026-11-18T16:34:59+00:00"
+    },
+    {
+     "id": "F1a5a1cb",
+     "field": "generic_inbox",
+     "value": "p***@stability.ai",
+     "source_url": "https://stability.ai/",
+     "snippet": "p***@stability.ai",
+     "fetched_at": "2026-11-18T16:34:57+00:00"
+    },
+    {
+     "id": "Fc3ae307",
+     "field": "generic_inbox",
+     "value": "p***@stability.ai",
+     "source_url": "https://stability.ai/company",
+     "snippet": "p***@stability.ai",
+     "fetched_at": "2026-11-18T16:35:01+00:00"
+    },
+    {
+     "id": "F535493b",
+     "field": "is_b2b_saas",
+     "value": "true",
+     "source_url": "https://stability.ai/",
+     "snippet": "Brand Studio, our fully managed creative production platform for enterprise teams.",
+     "fetched_at": "2026-11-18T16:34:57+00:00"
+    },
+    {
+     "id": "F478ffab",
+     "field": "named_customer",
+     "value": "Electronic Arts",
+     "source_url": "https://stability.ai/careers",
+     "snippet": "This artist-centric approach is why Electronic Arts, Universal Music Group, Warner Music Group, WPP, and others have chosen us as their strategic partner.",
+     "fetched_at": "2026-11-18T16:35:08+00:00"
+    },
+    {
+     "id": "Fa223c14",
+     "field": "named_customer",
+     "value": "Universal Music Group",
+     "source_url": "https://stability.ai/careers",
+     "snippet": "This artist-centric approach is why Electronic Arts, Universal Music Group, Warner Music Group, WPP, and others have chosen us as their strategic partner.",
+     "fetched_at": "2026-11-18T16:35:08+00:00"
+    },
+    {
+     "id": "Fc1ff600",
+     "field": "named_customer",
+     "value": "WPP",
+     "source_url": "https://stability.ai/careers",
+     "snippet": "This artist-centric approach is why Electronic Arts, Universal Music Group, Warner Music Group, WPP, and others have chosen us as their strategic partner.",
+     "fetched_at": "2026-11-18T16:35:08+00:00"
+    },
+    {
+     "id": "Fe6817ea",
+     "field": "named_customer",
+     "value": "Warner Music Group",
+     "source_url": "https://stability.ai/careers",
+     "snippet": "This artist-centric approach is why Electronic Arts, Universal Music Group, Warner Music Group, WPP, and others have chosen us as their strategic partner.",
+     "fetched_at": "2026-11-18T16:35:08+00:00"
+    },
+    {
+     "id": "F567263d",
+     "field": "person",
+     "value": "James Cameron | Board Member",
+     "source_url": "https://stability.ai/careers",
+     "snippet": "In June 2024, Stability AI entered a new phase of growth with a leadership team including CEO Prem Akkaraju, Executive Chairman Sean Parker, and Board Member James Cameron, alongside board members Dana Settle and Thomas Laffont.",
+     "fetched_at": "2026-11-18T16:35:08+00:00"
+    },
+    {
+     "id": "Fd2e7ab4",
+     "field": "person",
+     "value": "Prem Akkaraju | CEO",
+     "source_url": "https://stability.ai/careers",
+     "snippet": "In June 2024, Stability AI entered a new phase of growth with a leadership team including CEO Prem Akkaraju, Executive Chairman Sean Parker, and Board Member James Cameron, alongside board members Dana Settle and Thomas Laffont.",
+     "fetched_at": "2026-11-18T16:35:08+00:00"
+    },
+    {
+     "id": "Fea1de18",
+     "field": "person",
+     "value": "Sean Parker | Executive Chairman",
+     "source_url": "https://stability.ai/careers",
+     "snippet": "In June 2024, Stability AI entered a new phase of growth with a leadership team including CEO Prem Akkaraju, Executive Chairman Sean Parker, and Board Member James Cameron, alongside board members Dana Settle and Thomas Laffont.",
+     "fetched_at": "2026-11-18T16:35:08+00:00"
+    },
+    {
+     "id": "F757465f",
+     "field": "product_description",
+     "value": "Stability AI is the leader in purpose-built AI products for professional creatives across music, gaming, and entertainment.",
+     "source_url": "https://stability.ai/careers",
+     "snippet": "Stability AI is the leader in purpose-built AI products for professional creatives across music, gaming, and entertainment.",
+     "fetched_at": "2026-11-18T16:35:08+00:00"
+    }
+   ],
+   "qualification": {
+    "domain": "stability.ai",
+    "decision": "GO_FLAGGED",
+    "score": 5.0,
+    "confidence": "medium",
+    "reasons": [
+     {
+      "text": "B2B SaaS confirmed",
+      "fact_ids": [
+       "F535493b"
+      ]
+     },
+     {
+      "text": "Compliance trigger: Enterprise/compliance-pressure signal",
+      "fact_ids": [
+       "F0b4f485"
+      ]
+     },
+     {
+      "text": "Stage in ICP: Series B",
+      "fact_ids": [
+       "Fbb191fe"
+      ]
+     }
+    ],
+    "unknowns": [
+     "cert_status"
+    ],
+    "passes_threshold": true,
+    "rubric_version": 1
+   },
+   "poc": {
+    "domain": "stability.ai",
+    "status": "ok",
+    "name": "Ryan Holeman",
+    "title": "Chief Information Security Officer",
+    "email": "r***@stability.ai",
+    "email_status": "verified",
+    "source": "hunter",
+    "confidence": 75,
+    "verification": "valid",
+    "role_type": "security_head",
+    "reason": "Hunter: best role match by priority ['security', 'compliance', 'engineering', 'founder'] (security_head; confidence 75; verification valid)",
+    "guessed_email": null
+   },
+   "drafts": [
+    {
+     "subject": "Security questionnaires at Stability AI",
+     "body": "Hi Ryan,\n\nI noticed that Stability AI is already supporting major enterprise partners like Electronic Arts and Universal Music Group.\n\nWith such a high-profile client base, are enterprise security questionnaires becoming a bottleneck for your security team?\n\nSprinto helps teams like yours launch a Trust Center and complete those security questionnaires in minutes.\n\nWould you be open to a brief conversation about how we could streamline this process for you?\n\nBest,\nKay Dee\nSprinto",
+     "sentences": "[{\"text\": \"I noticed that Stability AI is already supporting major enterprise partners like Electronic Arts and Universal Music Group.\", \"type\": \"hook\", \"fact_ids\": [\"F478ffab\", \"Fa223c14\"]}, {\"text\": \"With such a high-profile client base, are enterprise security questionnaires becoming a bottleneck for your security team?\", \"type\": \"pain\", \"fact_ids\": [\"F478ffab\", \"Fa223c14\", \"Fe6817ea\"]}, {\"text\": \"Sprinto helps teams like yours launch a Trust Center and complete those security questionnaires in minutes.\", \"type\": \"pitch\", \"fact_ids\": [\"S5\"]}, {\"text\": \"Would you be open to a brief conversation about how we could streamline this process for you?\", \"type\": \"cta\", \"fact_ids\": []}]",
+     "pain_points": "[{\"id\": \"sec_questionnaires\", \"text\": \"Enterprise security questionnaires keep landing on the security team\", \"rationale\": \"As Stability AI partners with major enterprise clients like Electronic Arts and Universal Music Group, the security team likely faces a high volume of security questionnaires from these large-scale organizations.\", \"fact_ids\": [\"F478ffab\", \"Fa223c14\", \"Fe6817ea\"]}, {\"id\": \"sec_evidence\", \"text\": \"Collecting audit evidence across many tools is slow and manual\", \"rationale\": \"Maintaining a public-facing Trust Center suggests a commitment to transparency, which often requires significant manual effort to continuously gather and update audit evidence for enterprise stakeholders.\", \"fact_ids\": [\"F98a3088\", \"F0b4f485\"]}]",
+     "greeting_name": "Ryan",
+     "rubric_version": 1,
+     "status": "pending_review",
+     "check_result": "{\"passed\":true,\"failures\":[],\"warnings\":[\"body is 68 words (target 80-120)\"]}",
+     "poc": "{\"domain\":\"stability.ai\",\"status\":\"ok\",\"name\":\"Ryan Holeman\",\"title\":\"Chief Information Security Officer\",\"email\":\"r***@stability.ai\",\"email_status\":\"verified\",\"source\":\"hunter\",\"confidence\":75,\"verification\":\"valid\",\"role_type\":\"security_head\",\"reason\":\"Hunter: best role match by priority ['security', 'compliance', 'engineering', 'founder'] (security_head; confidence 75; verification valid)\",\"guessed_email\":null}"
+    }
+   ]
+  },
+  {
+   "domain": "writer.com",
+   "name": "Writer",
+   "source_url": "https://writer.com/",
+   "facts": [
+    {
+     "id": "F2f0ea85",
+     "field": "cert_iso27001",
+     "value": "ISO 27001",
+     "source_url": "https://writer.com/security",
+     "snippet": "We undergo annual SOC 2 Type II evaluations and hold ISO/IEC 27001, 27701, and 42001 certifications, confirming our implemented controls for security, privacy, and responsible AI management.",
+     "fetched_at": "2026-11-18T16:35:34+00:00"
+    },
+    {
+     "id": "F35ce8ec",
+     "field": "cert_soc2_type2",
+     "value": "SOC 2 Type II",
+     "source_url": "https://writer.com/plans/",
+     "snippet": "| SOC 2 Type II | No | Report available upon request |",
+     "fetched_at": "2026-11-18T16:35:34+00:00"
+    },
+    {
+     "id": "F9c52097",
+     "field": "cert_soc2_type2",
+     "value": "SOC 2 Type II",
+     "source_url": "https://writer.com/security",
+     "snippet": "ISO and SOC 2 Type II certifications",
+     "fetched_at": "2026-11-18T16:35:34+00:00"
+    },
+    {
+     "id": "F4e17621",
+     "field": "enterprise_signal",
+     "value": "DPA",
+     "source_url": "https://writer.com/security",
+     "snippet": "Read our Privacy policy and Data processing agreement to learn more about how we stand behind this commitment.",
+     "fetched_at": "2026-11-18T16:35:34+00:00"
+    },
+    {
+     "id": "F74bba64",
+     "field": "enterprise_signal",
+     "value": "DPA",
+     "source_url": "https://writer.com/plans/",
+     "snippet": "| DPA for GDPR and CCPA compliance | Yes | Yes |",
+     "fetched_at": "2026-11-18T16:35:34+00:00"
+    },
+    {
+     "id": "F7faacc4",
+     "field": "enterprise_signal",
+     "value": "trust center",
+     "source_url": "https://writer.com/security",
+     "snippet": "Trust center",
+     "fetched_at": "2026-11-18T16:35:34+00:00"
+    },
+    {
+     "id": "F99b0c3f",
+     "field": "enterprise_signal",
+     "value": "trust center",
+     "source_url": "https://writer.com/",
+     "snippet": "Trust center",
+     "fetched_at": "2026-11-18T16:35:33+00:00"
+    },
+    {
+     "id": "Fa89308a",
+     "field": "enterprise_signal",
+     "value": "Enterprise pricing tier",
+     "source_url": "https://writer.com/plans/",
+     "snippet": "Enterprise",
+     "fetched_at": "2026-11-18T16:35:34+00:00"
+    },
+    {
+     "id": "Fb5eeffa",
+     "field": "enterprise_signal",
+     "value": "trust center",
+     "source_url": "https://writer.com/plans/",
+     "snippet": "Trust center",
+     "fetched_at": "2026-11-18T16:35:34+00:00"
+    },
+    {
+     "id": "Fd44f480",
+     "field": "enterprise_signal",
+     "value": "trust center",
+     "source_url": "https://writer.com/company/contact/",
+     "snippet": "Trust center",
+     "fetched_at": "2026-11-18T16:35:38+00:00"
+    },
+    {
+     "id": "Fe8beaf4",
+     "field": "enterprise_signal",
+     "value": "trust center",
+     "source_url": "https://writer.com/product/writer-agent/",
+     "snippet": "Trust center",
+     "fetched_at": "2026-11-18T16:35:39+00:00"
+    },
+    {
+     "id": "Fef7900f",
+     "field": "enterprise_signal",
+     "value": "trust center",
+     "source_url": "https://writer.com/company/careers/",
+     "snippet": "Trust center",
+     "fetched_at": "2026-11-18T16:35:35+00:00"
+    },
+    {
+     "id": "Ff326ea6",
+     "field": "enterprise_signal",
+     "value": "trust center",
+     "source_url": "https://writer.com/company/about/",
+     "snippet": "Trust center",
+     "fetched_at": "2026-11-18T16:35:37+00:00"
+    },
+    {
+     "id": "F0fe4777",
+     "field": "eu_regulated",
+     "value": "GDPR",
+     "source_url": "https://writer.com/plans/",
+     "snippet": "| DPA for GDPR and CCPA compliance | Yes | Yes |",
+     "fetched_at": "2026-11-18T16:35:34+00:00"
+    },
+    {
+     "id": "Fc3ec1fd",
+     "field": "eu_regulated",
+     "value": "HIPAA",
+     "source_url": "https://writer.com/security",
+     "snippet": "We also maintain certifications for HIPAA Type 1 and PCI compliance and adhere to our obligations under global privacy laws.",
+     "fetched_at": "2026-11-18T16:35:34+00:00"
+    },
+    {
+     "id": "F375b602",
+     "field": "funding_stage",
+     "value": "Series B",
+     "source_url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE84U3VjMHBtcE5ma09HbWV0N21VWVMtYmNJd0VXSUtDMUZWemxsSGw0Q2NqU2pmRWtscElZc0tfTGgwbFBIbGxpZGYzbDY5ZDQzdmY3aGFwWlZ0QWhKWE5nR3dPSTZENHdIQVR2TzItWHhPdjZ5WWFNYg?oc=5",
+     "snippet": "Writer Raises $100M in Series B - citybiz",
+     "fetched_at": "2026-11-18T16:35:33+00:00"
+    },
+    {
+     "id": "F0782788",
+     "field": "is_b2b_saas",
+     "value": "true",
+     "source_url": "https://writer.com/plans/",
+     "snippet": "|  | Try for free | Contact sales |",
+     "fetched_at": "2026-11-18T16:35:34+00:00"
+    },
+    {
+     "id": "F300732a",
+     "field": "is_b2b_saas",
+     "value": "true",
+     "source_url": "https://writer.com/security",
+     "snippet": "The only full-stack generative AI platform built just for enterprises",
+     "fetched_at": "2026-11-18T16:35:34+00:00"
+    },
+    {
+     "id": "F7a94795",
+     "field": "is_b2b_saas",
+     "value": "true",
+     "source_url": "https://writer.com/product/writer-agent/",
+     "snippet": "Request a demo",
+     "fetched_at": "2026-11-18T16:35:39+00:00"
+    },
+    {
+     "id": "Ff22d3e1",
+     "field": "is_b2b_saas",
+     "value": "true",
+     "source_url": "https://writer.com/",
+     "snippet": "AI research built for enterprises",
+     "fetched_at": "2026-11-18T16:35:33+00:00"
+    },
+    {
+     "id": "Ffc7e7c7",
+     "field": "is_b2b_saas",
+     "value": "true",
+     "source_url": "https://writer.com/company/about/",
+     "snippet": "Fifteen years later, they\u2019re at the helm of the defining platform for enterprise growth.",
+     "fetched_at": "2026-11-18T16:35:37+00:00"
+    }
+   ],
+   "qualification": {
+    "domain": "writer.com",
+    "decision": "GO",
+    "score": 4.0,
+    "confidence": "high",
+    "reasons": [
+     {
+      "text": "B2B SaaS confirmed",
+      "fact_ids": [
+       "F0782788",
+       "F300732a"
+      ]
+     },
+     {
+      "text": "Existing certification noted (weaker fit if complete): ISO 27001, SOC 2 Type II",
+      "fact_ids": [
+       "F35ce8ec",
+       "F9c52097",
+       "F2f0ea85"
+      ]
+     },
+     {
+      "text": "Compliance trigger: Enterprise/compliance-pressure signal",
+      "fact_ids": [
+       "F4e17621"
+      ]
+     },
+     {
+      "text": "Stage in ICP: Series B",
+      "fact_ids": [
+       "F375b602"
+      ]
+     },
+     {
+      "text": "EU/regulated signal: GDPR",
+      "fact_ids": [
+       "F0fe4777"
+      ]
+     }
+    ],
+    "unknowns": [],
+    "passes_threshold": true,
+    "rubric_version": 1
+   },
+   "poc": {
+    "domain": "writer.com",
+    "status": "ok",
+    "name": "Waseem Alshikh",
+    "title": "Co-founder and CTO",
+    "email": "w***@writer.com",
+    "email_status": "verified",
+    "source": "hunter",
+    "confidence": 85,
+    "verification": "valid",
+    "role_type": "cto_vp_eng",
+    "reason": "Hunter: best role match by priority ['security', 'compliance', 'engineering', 'founder'] (cto_vp_eng; confidence 85; verification valid)",
+    "guessed_email": null
+   },
+   "drafts": [
+    {
+     "subject": "Compliance at Writer",
+     "body": "Hi Waseem,\n\nI noticed that Writer maintains certifications like ISO 27001 and HIPAA compliance.\n\nDo engineers ever get pulled away from product work to prepare for audits?\n\nSprinto covers SOC 2, ISO 27001, HIPAA, GDPR, PCI DSS and 200+ global standards.\n\nWould you be open to a brief chat next week?\n\nBest,\nKay Dee\nSprinto",
+     "sentences": "[{\"text\": \"I noticed that Writer maintains certifications like ISO 27001 and HIPAA compliance.\", \"type\": \"hook\", \"fact_ids\": [\"F2f0ea85\", \"Fc3ec1fd\"]}, {\"text\": \"Do engineers ever get pulled away from product work to prepare for audits?\", \"type\": \"pain\", \"fact_ids\": [\"F2f0ea85\", \"Fc3ec1fd\"]}, {\"text\": \"Sprinto covers SOC 2, ISO 27001, HIPAA, GDPR, PCI DSS and 200+ global standards.\", \"type\": \"pitch\", \"fact_ids\": [\"S1\"]}, {\"text\": \"Would you be open to a brief chat next week?\", \"type\": \"cta\", \"fact_ids\": []}]",
+     "pain_points": "[{\"id\": \"eng_time\", \"text\": \"Engineers get pulled away from product work to prepare for audits\", \"rationale\": \"As a CTO, maintaining multiple continuous compliance frameworks like SOC 2, ISO 27001, and HIPAA often pulls engineering resources away from core product development.\", \"fact_ids\": [\"F2f0ea85\", \"Fc3ec1fd\"]}, {\"id\": \"eng_controls\", \"text\": \"Turning policy requirements into concrete engineering controls\", \"rationale\": \"Translating complex security standards from multiple certifications into actionable engineering controls is a recurring challenge for engineering leadership.\", \"fact_ids\": [\"F2f0ea85\", \"F9c52097\"]}]",
+     "greeting_name": "Waseem",
+     "rubric_version": 1,
+     "status": "pending_review",
+     "check_result": "{\"passed\":true,\"failures\":[],\"warnings\":[\"body is 49 words (target 80-120)\"]}",
+     "poc": "{\"domain\":\"writer.com\",\"status\":\"ok\",\"name\":\"Waseem Alshikh\",\"title\":\"Co-founder and CTO\",\"email\":\"w***@writer.com\",\"email_status\":\"verified\",\"source\":\"hunter\",\"confidence\":85,\"verification\":\"valid\",\"role_type\":\"cto_vp_eng\",\"reason\":\"Hunter: best role match by priority ['security', 'compliance', 'engineering', 'founder'] (cto_vp_eng; confidence 85; verification valid)\",\"guessed_email\":null}"
+    }
+   ]
+  }
+ ]
+}

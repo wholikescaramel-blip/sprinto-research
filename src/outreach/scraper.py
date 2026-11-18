@@ -53,6 +53,7 @@ class ScrapeReport:
     fetched: list[str] = field(default_factory=list)
     failed: list[str] = field(default_factory=list)
     cap_hit: bool = False
+    early_stop: bool = False    # a certain NO_GO was proven mid-scrape, so the remaining pages were skipped
     time_hit: bool = False      # the wall-clock budget ran out before every wanted page was fetched
     home_ok: bool = False
     elapsed: float = 0.0        # seconds spent scraping this company (network + politeness waits)
@@ -225,9 +226,10 @@ def find_link(links: list[str], domain: str, category: str) -> str | None:
     return None
 
 
-def scrape_company(db: DB, domain: str, fetcher: Fetcher, answered=None) -> ScrapeReport:
+def scrape_company(db: DB, domain: str, fetcher: Fetcher, answered=None, stop=None) -> ScrapeReport:
     """Fetch homepage then categories in priority order, skipping ones whose evidence-map
-    question is already answered (callable `answered(category)->bool`, uses facts so far)."""
+    question is already answered (callable `answered(category)->bool`, uses facts so far).
+    `stop()` -> True ends the scrape early (e.g. the pages already prove a hard NO_GO: no point fetching more)."""
     rep = ScrapeReport()
     t0 = fetcher.start_clock(domain)  # the per-company time budget starts here
     try:
@@ -241,6 +243,9 @@ def scrape_company(db: DB, domain: str, fetcher: Fetcher, answered=None) -> Scra
         for i, cat in enumerate(ORDER):
             if answered and answered(cat):
                 continue
+            if stop and stop():
+                rep.early_stop = True
+                break
             if fetcher.at_cap(domain):
                 rep.cap_hit = True
                 break

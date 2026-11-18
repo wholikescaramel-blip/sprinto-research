@@ -42,7 +42,7 @@ def _dom(d: str) -> str:
 def run(domains: Optional[Path] = typer.Option(None, "--domains", help="text file, one domain per line"),
         discover_: bool = typer.Option(False, "--discover", help="also search for more companies from the ICP"),
         limit: Optional[int] = typer.Option(None, "--limit"),
-        min_companies: int = typer.Option(10, "--min-companies", help="target number of qualified companies")):
+        min_companies: int = typer.Option(3, "--min-companies", help="good-fit companies to find; discovery stops once it has them")):
     """Whole pipeline up to the review queue. File lines may be domains OR company names.
     With no --domains, the system finds companies itself from the ICP (verified, never guessed)."""
     svc = _svc()

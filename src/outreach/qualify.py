@@ -14,6 +14,20 @@ TRIGGER_FIELDS = [("soc2_in_progress", "SOC 2 audit in progress"),
 FULL_CERT_PENALTY = 2.0  # certified (SOC 2 II + ISO) but not on a competitor tool: weaker fit
 
 
+STAGE_BEYOND_PENALTY = 2.0  # known stage later than the ICP's last one (e.g. Series E vs Series A-C)
+
+
+def _stage_rank(value: str) -> int | None:
+    """pre-seed 0, seed 1, Series A 2, B 3, ... None if it is not a funding stage."""
+    v = (value or "").casefold()
+    if re.search(r"pre-?seed", v):
+        return 0
+    if "seed" in v:
+        return 1
+    m = re.search(r"series\s+([a-z])\b", v)
+    return 2 + ord(m.group(1)) - ord("a") if m else None
+
+
 def _ids(rows, n=2):
     return [r["id"] for r in rows[:n]]
 
@@ -48,6 +62,14 @@ def qualify(db: DB, domain: str, icp_cfg: dict | None = None, rubric_cfg: dict |
         return res("NO_GO", reasons=[Reason(text=f"Vetoed: recent negative news ({r['value']})",
                                             fact_ids=_ids(F["negative_news"]))])
 
+    # --- hard gate 2 first (it is certain from the pages alone, so the scraper can stop early):
+    #     fully certified AND on a listed competitor -> drop
+    t2, iso, comp = F.get("cert_soc2_type2", []), F.get("cert_iso27001", []), F.get("competitor_tool", [])
+    if t2 and iso and comp:
+        return res("NO_GO", reasons=[Reason(
+            text=f"Already fully certified (SOC 2 Type II + ISO 27001) and uses {comp[0]['value']}",
+            fact_ids=_ids(t2, 1) + _ids(iso, 1) + _ids(comp, 1))])
+
     # --- hard gate 1: B2B SaaS (unknown = drop)
     b2b = F.get("is_b2b_saas", [])
     yes = [r for r in b2b if r["value"].lower() == "true"]
@@ -63,13 +85,7 @@ def qualify(db: DB, domain: str, icp_cfg: dict | None = None, rubric_cfg: dict |
                    unknowns=["is_b2b_saas"])
     reasons.append(Reason(text="B2B SaaS confirmed", fact_ids=_ids(yes)))
 
-    # --- hard gate 2: fully certified AND on a listed competitor -> drop
-    t2, iso, comp = F.get("cert_soc2_type2", []), F.get("cert_iso27001", []), F.get("competitor_tool", [])
     score = 0.0
-    if t2 and iso and comp:
-        return res("NO_GO", reasons=[Reason(
-            text=f"Already fully certified (SOC 2 Type II + ISO 27001) and uses {comp[0]['value']}",
-            fact_ids=_ids(t2, 1) + _ids(iso, 1) + _ids(comp, 1))])
     cert_rows = t2 + iso + F.get("cert_soc2_type1", []) + F.get("cert_soc2", [])
     if not cert_rows:
         unknowns.append("cert_status")  # flag: assume not certified, unverified
@@ -112,13 +128,25 @@ def qualify(db: DB, domain: str, icp_cfg: dict | None = None, rubric_cfg: dict |
     else:
         unknowns.append("compliance_trigger")
 
-    stage_hit = next((r for r in stage_rows if r["value"].casefold() in stages), None)
+    # A company is at its MOST ADVANCED stage: facts can mention several ("Series A through D", a news raise of
+    # Series E). Judging by any one fact let Cohere (Series E) count as "Series A".
+    icp_ranks = {rk for s in stages if (rk := _stage_rank(s)) is not None}
+    ranked = [(rk, r) for r in stage_rows if (rk := _stage_rank(r["value"])) is not None]
+    top = max(ranked, key=lambda x: x[0]) if ranked else None
+    stage_hit = top[1] if top and top[0] in icp_ranks else None
+    beyond = bool(top and icp_ranks and top[0] > max(icp_ranks))   # e.g. Series D/E when the ICP is Series A-C
+    if beyond:
+        score -= float(w.get("stage_beyond_penalty", STAGE_BEYOND_PENALTY))
+        reasons.append(Reason(text=f"Stage is beyond the ICP ({top[1]['value']}): usually past the point of "
+                                   "buying a first compliance program", fact_ids=[top[1]["id"]]))
     if stage_hit or hc_in:
         score += float(w.get("stage_fit", 2))
         if stage_hit:
             reasons.append(Reason(text=f"Stage in ICP: {stage_hit['value']}", fact_ids=[stage_hit["id"]]))
         if hc_in:
             reasons.append(Reason(text=f"Headcount in ICP range: {hc_in['value']}", fact_ids=[hc_in["id"]]))
+    elif beyond:
+        pass  # already explained above
     elif stage_rows or hc_known:
         reasons.append(Reason(text="Stage/headcount known but outside ICP range (no stage points)",
                               fact_ids=_ids(stage_rows, 1) + ([hc_known["id"]] if hc_known else [])))

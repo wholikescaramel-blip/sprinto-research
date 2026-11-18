@@ -88,3 +88,38 @@ def test_review_requires_valid_label_and_tag(db):
         record_review(db, did, "approve", "meh", "other")
     with pytest.raises(ValueError):
         record_review(db, did, "approve", "good", "not_a_tag")
+
+
+# ---- stage: a company is at its MOST ADVANCED stage (found in the first real sample capture) ----------
+def test_a_company_is_judged_by_its_most_advanced_stage_not_the_first_one_mentioned(db):
+    # Cohere: its About page says "Series A through D"; news says Series E. Not a Series A company.
+    d = _co(db, is_b2b_saas="true", enterprise_signal="trust center")
+    db.add_fact(d, "funding_stage", "Series D", "https://x.io/about", "four funding rounds (Series A through D)")
+    db.add_fact(d, "funding_stage", "Series E", "https://news/x", "X announces Series E fundraise")
+    q = qualify(db, d, ICP)
+    texts = " ".join(r.text for r in q.reasons)
+    assert "Stage is beyond the ICP (Series E)" in texts and "Stage in ICP" not in texts
+    assert q.score == 3 - 2 + 0 and not q.passes_threshold            # trigger 3, minus the beyond-ICP penalty
+
+
+def test_in_range_stage_still_scores_and_a_strong_company_can_still_clear_the_bar(db):
+    d = _co(db, is_b2b_saas="true", enterprise_signal="DPA", grc_job="Head of GRC")
+    db.add_fact(d, "funding_stage", "Series B", "https://x.io/about", "raised a Series B round")
+    q = qualify(db, d, ICP)
+    assert "Stage in ICP: Series B" in " ".join(r.text for r in q.reasons) and q.passes_threshold
+
+
+def test_earlier_than_the_icp_gets_no_stage_points_but_no_penalty(db):
+    d = _co(db, is_b2b_saas="true", enterprise_signal="DPA")
+    db.add_fact(d, "funding_stage", "Seed", "https://x.io/about", "raised a seed round")
+    q = qualify(db, d, ICP)
+    assert q.score == 3 and "beyond" not in " ".join(r.text for r in q.reasons)
+
+
+def test_a_funding_range_means_the_last_round_in_it(db):
+    from outreach.extract import deterministic_facts
+    db.upsert_company("c.io")
+    db.save_page("c.io", "https://c.io/about", 200,
+                 "Between 2021 and 2024, we secured four major funding rounds (Series A through D), raising nearly $1 billion.", [], [])
+    deterministic_facts(db, "c.io", [])
+    assert [f["value"] for f in db.facts("c.io", "funding_stage")] == ["Series D"]

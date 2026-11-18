@@ -64,7 +64,7 @@ function toast(msg, err = false) {
   setTimeout(() => gsap.to(t, { opacity: 0, y: 10, duration: 0.3, onComplete: () => t.remove() }), err ? 6500 : 3800);
 }
 
-const state = { status: null, companies: [], filter: 'all', queue: [], label: 'good', touched: false, polling: null };
+const state = { status: null, companies: [], filter: 'qualified', filterTouched: false, queue: [], label: 'good', touched: false, polling: null };
 
 /* ---------------------------------------------------------------- scroll progress + hero */
 gsap.to('#progress i', { scaleX: 1, ease: 'none', scrollTrigger: { trigger: document.body, start: 'top top', end: 'bottom bottom', scrub: 0.3 } });
@@ -124,6 +124,14 @@ async function loadStatus() {
   mode.textContent = s.mode; mode.classList.toggle('live', s.mode === 'LIVE');
   $('#foot-mode').textContent = s.readonly ? 'read-only demo · fictional data' : `mode ${s.mode} · ${s.my_email_set ? 'test inbox set' : 'MY_EMAIL missing'}`;
   $('#demo-banner').hidden = !s.demo;
+  const sb = $('#samples-bar');
+  if (s.samples_loaded) {
+    sb.hidden = false;
+    sb.innerHTML = 'Showing <b>sample results</b>: real pipeline output captured earlier (contact emails masked). <button class="btn" id="clear-samples">Clear samples</button>';
+  } else if (s.samples_available) {
+    sb.hidden = false;
+    sb.innerHTML = 'Want to review every stage without waiting for a live run? <button class="btn btn-solid" id="load-samples">Load sample results</button> <span class="fine">Real captured pipeline output, not invented.</span>';
+  } else { sb.hidden = true; }
   const chip = (ok, label) => `<span class="chip ${ok ? 'ok' : 'bad'}"><i></i>${label}</span>`;
   $('#status-chips').innerHTML = (s.readonly
     ? [chip(true, 'Read-only demo'), chip(true, 'Fictional data'), chip(true, `Mode ${s.mode}`)]
@@ -195,43 +203,58 @@ $('#run-btn').addEventListener('click', async () => {
 async function runHosted(body) {
   const logEl = $('#log');
   const log = (m) => { logEl.textContent += (logEl.textContent ? '\n' : '') + m; logEl.scrollTop = logEl.scrollHeight; };
-  const HOSTED_MAX = 8;                                   // keep a public run small
-  const cap = Math.min(body.limit || HOSTED_MAX, HOSTED_MAX);
+  const target = Math.min(Math.max(+body.min_companies || 3, 1), 5);   // good fits wanted (a public run stays small)
+  const maxLook = target * 4;                                          // never research more than this to find them
   logEl.textContent = ''; $('#run-btn').disabled = true; $('#run-stage').textContent = 'running'; $('#run-found').textContent = '';
-  const failures = [];
-  try {
-    setStage('discover'); log('Looking for companies…');
-    let companies = [], qi = 0, calls = 0;
-    const seenNotes = new Set();
-    const hasInput = body.inputs.trim().length > 0;
-    do {
-      const r = await api('/api/step/discover', { method: 'POST', body: { inputs: body.inputs, query_index: qi } });
-      for (const n of (r.notes || [])) if (!seenNotes.has(n)) { seenNotes.add(n); log(`note: ${n}`); }
-      for (const c of r.companies) if (!companies.some((x) => x.domain === c.domain)) { companies.push(c); log(`+ ${c.domain}`); }
-      qi = r.next_query; calls++;
-    } while (!hasInput && qi !== null && companies.length < cap && calls < 6);
-    companies = companies.slice(0, cap);
-    $('#run-found').textContent = `${companies.length} companies`;
-    if (!companies.length) log('No verified companies found. Try again, or paste some domains.');
-    let qualified = 0;
-    for (const c of companies) {
+  const seen = new Set(), notes = new Set(), failures = [];
+  let good = 0;
+  const note = (n) => { if (!notes.has(n)) { notes.add(n); log(`note: ${n}`); } };
+  const update = () => { $('#run-found').textContent = `${good} good fit${good === 1 ? '' : 's'} · ${seen.size} researched`; };
+
+  // One company: research it (news, then scraper); only a good fit gets a contact lookup and a draft.
+  const processCompany = async (domain) => {
+    if (seen.has(domain)) return;
+    seen.add(domain); update();
+    try {
+      setStage('news'); log(`Researching ${domain} (news first, then the scraper)…`);
+      const r = await api('/api/step/research', { method: 'POST', body: { domain } });
+      if (!r.ok) { log(`  skipped: ${r.note}`); return; }
+      log(`  ${r.decision} (score ${r.score})${r.passes ? '' : ' - not a good fit, no email'}`);
+      if (!r.passes) return;
+      good++; update();
+      setStage('poc'); log('  good fit: finding the contact and drafting…');
       try {
-        setStage('news'); log(`Researching ${c.domain} (news, then scraper)…`);
-        const r = await api('/api/step/research', { method: 'POST', body: { domain: c.domain } });
-        if (!r.ok) { log(`  skipped: ${r.note}`); continue; }
-        log(`  ${r.decision} (score ${r.score})${r.passes ? '' : ' - below the threshold, no email'}`);
-        if (!r.passes) continue;
-        qualified++;
-        setStage('poc'); log('  finding the contact and drafting…');
-        const d = await api('/api/step/draft', { method: 'POST', body: { domain: c.domain } });
-        log(d.draft_id ? `  draft ${d.draft_id}: ${d.draft_status}` : '  no named contact; handed to a human');
-      } catch (e) { failures.push(c.domain); log(`  error on ${c.domain}: ${e.message}`); if (/Daily limit/.test(e.message)) break; }
+        const d = await api('/api/step/draft', { method: 'POST', body: { domain } });
+        log(d.draft_id ? `  draft ${d.draft_id}: ${d.draft_status}${d.poc_status === 'no_named_poc' ? ' (no contact found yet, addressed "Hi there")' : ''}` : '  draft not created');
+      } catch (e) { log(`  draft failed: ${e.message}. Use "Draft email" on its card to retry.`); }
+    } catch (e) { failures.push(domain); log(`  error on ${domain}: ${e.message}`); if (/Daily limit/.test(e.message)) throw e; }
+  };
+
+  try {
+    setStage('discover');
+    if (body.inputs.trim()) {
+      // You named the companies: research exactly those (up to 8), good fit or not.
+      log('Resolving the companies you named…');
+      const r = await api('/api/step/discover', { method: 'POST', body: { inputs: body.inputs, query_index: 0 } });
+      (r.notes || []).forEach(note);
+      for (const c of r.companies.slice(0, 8)) await processCompany(c.domain);
+    } else {
+      // Discovery: look a few candidates at a time and stop as soon as we have enough good fits.
+      for (let qi = 0, calls = 0; qi !== null && good < target && seen.size < maxLook && calls < 6; calls++) {
+        setStage('discover'); log(`Searching for candidates (query ${qi + 1})…`);
+        const r = await api('/api/step/discover', { method: 'POST', body: { inputs: '', query_index: qi } });
+        (r.notes || []).forEach(note);
+        qi = r.next_query;
+        for (const c of r.companies) { if (good >= target || seen.size >= maxLook) break; await processCompany(c.domain); }
+      }
     }
     setStage('review', true);
     $('#run-stage').textContent = 'done';
-    log(`Done: ${qualified} qualified${failures.length ? `, ${failures.length} failed` : ''}.`);
+    log(good >= target || body.inputs.trim()
+      ? `Done: ${good} good fit${good === 1 ? '' : 's'} after researching ${seen.size}${failures.length ? `, ${failures.length} failed` : ''}.`
+      : `Done: found ${good} of the ${target} good fits you asked for (researched ${seen.size}). Not padded with poor fits.`);
     await refreshAll();
-    toast(qualified ? `${qualified} qualified. Drafts are in Review.` : 'Run finished: nothing qualified this time.');
+    toast(good ? `${good} good fit${good === 1 ? '' : 's'} found. Drafts are in Review.` : 'Run finished: no good fits this time.');
     $('#companies').scrollIntoView({ behavior: 'smooth' });
   } catch (e) {
     $('#run-stage').textContent = 'failed'; log(`ERROR: ${e.message}`); toast(e.message, true);
@@ -267,33 +290,61 @@ function startPolling() {
 /* ---------------------------------------------------------------- companies */
 const DEC = { GO: ['GO', 'go'], GO_FLAGGED: ['GO · FLAGGED', 'flag'], NO_GO: ['NO-GO', 'no'], INSUFFICIENT_DATA: ['NEEDS DATA', 'ins'] };
 
+function setFilter(f) {
+  state.filter = f;
+  $$('#filters button').forEach((x) => x.classList.toggle('on', x.dataset.f === f));
+}
 async function loadCompanies() {
   state.companies = await api('/api/companies');
+  // by default show only good fits; if there are none yet, show everything instead of an empty page
+  if (!state.filterTouched) setFilter(state.companies.some((c) => c.passes) ? 'qualified' : 'all');
   renderCards();
 }
 function renderCards() {
   const f = state.filter;
   const list = state.companies.filter((c) => f === 'all' || (f === 'qualified' ? c.passes : !c.passes));
-  $('#cards-empty').hidden = state.companies.length > 0;
+  const empty = $('#cards-empty');
+  empty.hidden = list.length > 0;
+  empty.textContent = state.companies.length
+    ? (f === 'qualified' ? 'No good fits yet. Switch to All or Rejected to see the others.' : 'Nothing here.')
+    : 'No companies yet. Start a run above, or load the sample results.';
   $('#cards').innerHTML = list.map((c) => {
     const [label, cls] = DEC[c.decision] || ['PENDING', 'ins'];
+    const draftLine = c.draft_status ? 'draft: ' + esc(c.draft_status.replace('_', ' ')) : (c.can_draft ? 'no draft yet' : 'no draft');
     return `<article class="panel card" data-d="${esc(c.domain)}">
       <div class="score">${c.score ?? '–'}</div>
       <h4>${esc(c.name)}</h4><div class="dom">${esc(c.domain)}</div>
-      <span class="stamp ${cls}">${label}</span>
+      <span class="stamp ${cls}">${label}</span>${c.origin === 'sample' ? ' <span class="tag" title="Real pipeline output captured earlier, loaded for review">sample</span>' : ''}
       <div class="why">${esc(c.top_reason || 'Not qualified yet.')}</div>
       <div class="tags">${(c.unknowns || []).map((u) => `<span class="tag unk" title="Unverified, so it never appears in the email">? ${esc(u)}</span>`).join('')}<span class="tag">${c.n_facts} facts</span></div>
       <div class="who">${c.poc && c.poc.name ? `${esc(c.poc.name)} · ${esc(c.poc.title || '')}` : '<span class="muted">No contact yet</span>'}</div>
-      <div class="card-foot"><span class="fine">${c.draft_status ? 'draft: ' + esc(c.draft_status.replace('_', ' ')) : 'no draft'}</span><button class="btn btn-white" data-trace="${esc(c.domain)}">Trace</button></div>
+      <div class="card-foot"><span class="fine">${draftLine}</span><span class="item-actions">
+        ${c.can_unflag ? `<button class="btn" data-act="unflag" data-d="${esc(c.domain)}" title="I checked the unknowns by hand: mark it GO and (re)draft">Unflag</button>` : ''}
+        ${c.can_draft ? `<button class="btn" data-act="draft" data-d="${esc(c.domain)}">Draft email</button>` : ''}
+        <button class="btn btn-white" data-trace="${esc(c.domain)}">Trace</button></span></div>
     </article>`;
   }).join('');
   if (!reduce) gsap.from('#cards .card', { y: 40, opacity: 0, rotate: () => gsap.utils.random(-2, 2), stagger: 0.07, duration: 0.5, ease: 'back.out(1.5)', clearProps: 'all' });
 }
 $('#filters').addEventListener('click', (e) => {
   const b = e.target.closest('button'); if (!b) return;
-  state.filter = b.dataset.f;
-  $$('#filters button').forEach((x) => x.classList.toggle('on', x === b));
+  state.filterTouched = true;
+  setFilter(b.dataset.f);
   renderCards();
+});
+
+/* Per-company actions: Draft email (retry / first draft) and Unflag (a human checked the unknowns by hand). */
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const act = b.dataset.act, d = b.dataset.d;
+  if (act === 'unflag' && !confirm(`Unflag ${d}? Only do this after you checked its unknowns yourself. It becomes GO and its draft is regenerated.`)) return;
+  const label = b.textContent; b.disabled = true; b.textContent = act === 'draft' ? 'Drafting…' : 'Unflagging…';
+  try {
+    const r = await api(`/api/company/${encodeURIComponent(d)}/${act}`, { method: 'POST' });
+    if (act === 'unflag') toast(r.draft_error ? r.draft_error : 'Unflagged. A fresh draft is in Review.', !!r.draft_error);
+    else toast(`Draft ${r.draft_status === 'blocked' ? 'was blocked by the claim checker' : 'is in Review'}.`);
+    await refreshAll();
+  } catch (err) { toast(err.message, true); b.disabled = false; b.textContent = label; }
 });
 document.addEventListener('click', (e) => {
   const t = e.target.closest('[data-trace]'); if (t) openTrace(t.dataset.trace);
@@ -480,3 +531,13 @@ async function refreshAll() { await loadCompanies(); await Promise.all([loadStat
     await Promise.all([loadStatus(), loadQueue()]);
   } catch (e) { toast('Could not reach the local API: ' + e.message, true); }
 })();
+
+document.addEventListener('click', async (e) => {
+  const ld = e.target.closest('#load-samples'), cl = e.target.closest('#clear-samples');
+  if (!ld && !cl) return;
+  try {
+    const r = await api(ld ? '/api/samples/load' : '/api/samples/clear', { method: 'POST' });
+    toast(ld ? `Loaded ${r.loaded} sample companies.` : `Cleared ${r.cleared} sample companies.`);
+    state.filterTouched = false; await refreshAll();
+  } catch (err) { toast(err.message, true); }
+});

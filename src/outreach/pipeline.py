@@ -97,7 +97,11 @@ def research(svc: Services, domain: str, log=None) -> dict:
                 "ats": "grc_job" in have, "privacy": "eu_regulated" in have,
                 "contact": "generic_inbox" in have}.get(cat, False)
 
-    rep = scrape_company(db, domain, svc.get_fetcher(), answered)
+    def certain_no_go() -> bool:  # fully certified AND on a competitor tool: proven from the pages alone
+        have = {r["field"] for r in db.facts(domain)}
+        return {"cert_soc2_type2", "cert_iso27001", "competitor_tool"} <= have
+
+    rep = scrape_company(db, domain, svc.get_fetcher(), answered, stop=certain_no_go)
     deterministic_facts(db, domain, comps)
     pages = db.pages_for(domain)
     if not rep.home_ok:
@@ -109,7 +113,7 @@ def research(svc: Services, domain: str, log=None) -> dict:
 
     info = {"kept": 0, "discarded": []}
     max_llm = int((cfg.get("limits") or {}).get("max_llm_extractions_per_company", 1))
-    if svc.llm is not None and max_llm >= 1:
+    if svc.llm is not None and max_llm >= 1 and not rep.early_stop:  # no extraction call for a proven NO_GO
         info = llm_extract(db, domain, svc.llm)
     db.set_stage(domain, "extract", "done", json.dumps(info))
 
@@ -134,6 +138,9 @@ def qualify_company(svc: Services, domain: str):
     q = qualify(svc.db, domain, svc.cfg, scrape_status=svc.db.stage(domain, "scrape"))
     svc.db.save_qual(q)
     svc.db.set_stage(domain, "qualify", "done")
+    if not q.passes_threshold:  # no longer a good fit: retire its unsent drafts (approved/sent ones are left alone)
+        svc.db.x("UPDATE drafts SET status='superseded', updated_at=? WHERE domain=? "
+                 "AND status IN ('pending_review','blocked')", (now(), domain))
     return q
 
 
@@ -153,7 +160,7 @@ def draft_company(svc: Services, domain: str):
 
 def run_pipeline(svc: Services, domains: list[str], do_discover: bool = False,
                  limit: int | None = None, names: list[str] | None = None,
-                 min_companies: int = 10, progress=None) -> dict:
+                 min_companies: int = 3, progress=None) -> dict:
     """Inputs: manual domains and/or company names. With NO manual input (or --discover), the system
     finds companies itself: configured RSS/directory sources, then ICP search. Every discovered
     domain is verified in code (homepage must name the company) before it is researched."""
@@ -164,67 +171,98 @@ def run_pipeline(svc: Services, domains: list[str], do_discover: bool = False,
     run_id = db.x("INSERT INTO runs(args,started_at,created_at,updated_at) VALUES(?,?,?,?)",
                   (json.dumps({"domains": len(domains), "names": len(names), "discover": do_discover,
                                "limit": limit, "min_companies": min_companies}), now(), now(), now()))
-    all_domains = list(domains)
+    import socket
+    resolver = svc.resolver or socket.gethostbyname
     notes: list[str] = []
+    manual = list(domains)
     if names and svc.llm is not None:
         try:
             from .discovery import resolve_names
-            got = resolve_names(db, svc.llm, svc.get_fetcher(), names,
-                                svc.resolver or __import__("socket").gethostbyname, notes=notes)
-            all_domains += [g["domain"] for g in got]
+            got = resolve_names(db, svc.llm, svc.get_fetcher(), names, resolver, notes=notes)
+            manual += [g["domain"] for g in got]
         except Exception as e:
             notes.append(f"name resolution failed softly: {e}")
-    if (do_discover or not (domains or names)) and svc.llm is not None:
-        from .discovery import icp_search
-        try:
-            all_domains += [d["domain"] for d in discover(db, svc.llm, svc.get_fetcher(), svc.cfg)]
-        except Exception as e:
-            notes.append(f"configured-source discovery failed softly: {e}")
-        try:  # over-fetch 2x: many leads will fail qualification
-            want = max(0, min_companies * 2 - len(dedupe(all_domains)))
-            if want:
-                all_domains += [d["domain"] for d in icp_search(
-                    db, svc.llm, svc.get_fetcher(), svc.cfg, want,
-                    resolver=svc.resolver or __import__("socket").gethostbyname, notes=notes)]
-        except Exception as e:
-            notes.append(f"ICP search failed softly: {e}")
-    all_domains = dedupe(all_domains)
-    for n in notes:  # say WHY when discovery came up short, instead of just "0 companies"
-        log(f"note|{n}")
-    log(f'found:{len(all_domains)}|{len(all_domains)} companies to research')
+    manual = dedupe(manual)
     if limit:
-        all_domains = all_domains[:limit]
-    summary = {"companies": len(all_domains), "errors": {}, "qualified": [], "drafts": [], "notes": notes}
+        manual = manual[:limit]
+    discovering = (do_discover or not (domains or names)) and svc.llm is not None
+    target = max(1, min_companies)          # how many GOOD-FIT companies we want, not how many we look at
+    max_candidates = target * 4             # never research more than this many to find them
+    summary = {"companies": 0, "errors": {}, "qualified": [], "drafts": [], "notes": notes}
+    good: list = []                         # qualified: GO / GO_FLAGGED at or above the send threshold
+    seen: set[str] = set()
 
-    results = []
-    for d in all_domains:
+    def process(d: str) -> None:
+        """Research -> qualify one company; if it is a good fit, find a contact and draft right away."""
+        if d in seen:
+            return
+        seen.add(d)
+        summary["companies"] += 1
         try:
             r = research(svc, d, log)
             if r.get("dropped") or r.get("status") == "failed":
                 summary["errors"][d] = r.get("dropped") or "homepage unreachable"
-                continue
+                return
             log(f'stage:qualify|Qualifying {d}')
-            results.append(qualify_company(svc, d))
-            log(f'done:{d}|{d}: {results[-1].decision} (score {results[-1].score})')
+            q = qualify_company(svc, d)
+            log(f'done:{d}|{d}: {q.decision} (score {q.score})')
         except Exception as e:  # fail soft per company
             db.set_stage(d, "research", "failed", f"{e}\n{traceback.format_exc(limit=3)}")
             summary["errors"][d] = str(e)
-    ranked = sorted([q for q in results if q.passes_threshold], key=lambda q: -q.score)
-    summary["qualified"] = [(q.domain, q.decision, q.score) for q in ranked]
-    for q in ranked:
+            return
+        if not q.passes_threshold:
+            return
+        good.append(q)
         try:
-            log(f'stage:poc|Finding a contact at {q.domain}')
-            poc = poc_company(svc, q.domain)
-            log(f'stage:draft|Drafting for {q.domain}')
-            did = draft_company(svc, q.domain) if svc.llm is not None else None
-            summary["drafts"].append((q.domain, poc.status, did))
+            log(f'stage:poc|Finding a contact at {d}')
+            poc = poc_company(svc, d)
+            log(f'stage:draft|Drafting for {d}')
+            did = draft_company(svc, d) if svc.llm is not None else None
+            summary["drafts"].append((d, poc.status, did))
         except Exception as e:
-            db.set_stage(q.domain, "draft", "failed", str(e))
-            summary["errors"][q.domain] = str(e)
+            db.set_stage(d, "draft", "failed", str(e))
+            summary["errors"][d] = f"drafting failed: {e}"
+            notes.append(f"{d} qualified but its draft failed ({str(e)[:90]}). Use 'Draft email' on its card to retry.")
+
+    if manual:
+        log(f'found:{len(manual)}|{len(manual)} companies to research')
+        for d in manual:
+            process(d)
+
+    if discovering:
+        # Discovery is lazy: look for candidates a few at a time and STOP as soon as we have `target` good fits.
+        # Companies that show no sign of B2B software on their homepage are never researched at all.
+        from .discovery import default_queries, icp_search
+        try:
+            for d in [x["domain"] for x in discover(db, svc.llm, svc.get_fetcher(), svc.cfg)]:
+                if len(good) >= target or len(seen) >= max_candidates:
+                    break
+                process(d)
+        except Exception as e:
+            notes.append(f"configured-source discovery failed softly: {e}")
+        for qi in range(len(default_queries(svc.cfg))):
+            if len(good) >= target or len(seen) >= max_candidates:
+                break
+            log(f'stage:discover|Searching for candidates (query {qi + 1})')
+            try:
+                leads = icp_search(db, svc.llm, svc.get_fetcher(), svc.cfg, target=8, only_query=qi,
+                                   max_verify=6, resolver=resolver, notes=notes, b2b_gate=True)
+            except Exception as e:
+                notes.append(f"ICP search failed softly: {e}")
+                break
+            for lead in leads:
+                if len(good) >= target or len(seen) >= max_candidates:
+                    break
+                process(lead["domain"])
+    for n in notes:  # say WHY when discovery came up short, instead of just "0 companies"
+        log(f"note|{n}")
+    summary["qualified"] = sorted(((q.domain, q.decision, q.score) for q in good), key=lambda x: -x[2])
     log('stage:review|Ready for review')
-    if len(ranked) < min_companies:
-        notes.append(f"only {len(ranked)} of the requested {min_companies} companies qualified "
-                     f"(of {len(all_domains)} researched); not padded with unverified names")
+    if len(good) < target:
+        notes.append(f"found {len(good)} of the {target} good-fit companies you asked for "
+                     f"(researched {summary['companies']}); not padded with poor fits")
+    else:
+        notes.append(f"found {len(good)} good-fit companies after researching {summary['companies']}; stopped there")
     db.x("UPDATE runs SET summary=?, finished_at=?, updated_at=? WHERE id=?",
          (json.dumps(summary), now(), now(), run_id))
     return summary

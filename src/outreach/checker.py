@@ -76,8 +76,8 @@ def check_draft(draft: DraftOut, poc: Poc, facts: Mapping[str, Mapping], sprinto
     types = [s.type for s in draft.sentences]
 
     # recipient must match the stored PoC
-    if not poc.first_name or draft.greeting_name.strip().casefold() != poc.first_name.casefold():
-        fails.append(f"recipient name '{draft.greeting_name}' does not match stored PoC '{poc.first_name}'")
+    if draft.greeting_name.strip().casefold() != poc.greeting.casefold():
+        fails.append(f"recipient name '{draft.greeting_name}' does not match stored PoC '{poc.greeting}'")
     if "hook" not in types:
         fails.append("no hook sentence")
     if "pain" not in types:

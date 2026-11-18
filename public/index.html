@@ -88,7 +88,7 @@
       <p class="muted">Paste company names or domains, one per line. Leave it empty and the system searches for companies that match your ICP. Every one is verified against its own homepage before it is researched.</p>
       <textarea id="inputs" rows="5" aria-label="Company names or domains, one per line" placeholder="acme.com&#10;Initech Systems&#10;(empty = find companies from the ICP)"></textarea>
       <div class="row">
-        <label>Companies that should qualify<input type="number" id="min" value="10" min="1" max="50"></label>
+        <label>Good-fit companies to find<input type="number" id="min" value="3" min="1" max="10"></label>
         <label>Cap on companies<input type="number" id="limit" placeholder="no cap" min="1"></label>
       </div>
       <button class="btn btn-solid wide" id="run-btn">Start run</button>
@@ -109,11 +109,12 @@
     <div class="sec-head">
       <h2 class="h2">Who fits, <b>and why</b></h2>
       <div class="filters" id="filters" role="group" aria-label="Filter companies">
-        <button class="pill on" data-f="all">All</button>
-        <button class="pill" data-f="qualified">Qualified</button>
-        <button class="pill" data-f="nogo">No-Go / unsure</button>
+        <button class="pill on" data-f="qualified">Good fits</button>
+        <button class="pill" data-f="all">All</button>
+        <button class="pill" data-f="nogo">Rejected</button>
       </div>
     </div>
+    <div class="samples-bar" id="samples-bar" hidden></div>
     <div class="cards" id="cards"></div>
     <p class="empty" id="cards-empty" hidden>No companies yet. Start a run above.</p>
   </div>

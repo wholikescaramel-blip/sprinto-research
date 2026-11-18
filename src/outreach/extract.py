@@ -141,10 +141,11 @@ def deterministic_facts(db: DB, domain: str, competitors: list[str]) -> int:
         for m in re.finditer(r"\bGDPR\b|\bHIPAA\b|\bPCI[- ]DSS\b", text):
             add("eu_regulated", m.group(0), m.start(), m.end())
             break
-        for m in re.finditer(r"Series\s+[A-E]\b", text):
+        # "Series A through D" describes rounds raised so far: the company is at the LAST one, not the first.
+        for m in re.finditer(r"Series\s+([A-H])\b(?:\s*(?:through|to|-|–|—|and|&)\s*(?:Series\s+)?([A-H])\b)?", text):
             snip = snippet_around(text, m.start(), m.end())
             if re.search(r"rais|funding|led by|round|backed|investor", snip, re.I):
-                add("funding_stage", m.group(0), m.start(), m.end())
+                add("funding_stage", f"Series {(m.group(2) or m.group(1)).upper()}", m.start(), m.end())
                 break
         for m in re.finditer(r"(\d[\d,]*)\+?\s+(?:employees|team members|people)\b", text, re.I):
             add("headcount", m.group(0), m.start(), m.end())

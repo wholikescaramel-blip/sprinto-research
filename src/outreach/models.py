@@ -95,6 +95,11 @@ class Poc(BaseModel):
     def first_name(self) -> Optional[str]:
         return self.name.split()[0] if self.name else None
 
+    @property
+    def greeting(self) -> str:
+        """What the email says after 'Hi': the first name, or 'there' when we have no named contact yet."""
+        return self.first_name or "there"
+
 
 # ---- Drafting ------------------------------------------------------------
 class PainPick(BaseModel):

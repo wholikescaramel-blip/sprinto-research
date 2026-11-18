@@ -13,6 +13,7 @@ from typing import Callable
 import feedparser
 
 from .db import DB
+from .extract import B2B_CUE, SOFTWARE_CUE
 from .llm import LLMClient
 from .models import DiscoveredCompany, DiscoveryOut
 from .scraper import Fetcher
@@ -214,7 +215,7 @@ def _ask(llm, grounded_prompt: str, plain_prompt: str, notes: list[str]) -> str 
 def icp_search(db: DB, llm, fetcher: Fetcher, icp_cfg: dict, target: int = 20,
                max_queries: int = 8, resolver: Callable[[str], str] = socket.gethostbyname,
                only_query: int | None = None, max_verify: int | None = None,
-               notes: list[str] | None = None) -> list[dict]:
+               notes: list[str] | None = None, b2b_gate: bool = False) -> list[dict]:
     """Find up to `target` NEW verified companies. Unverifiable leads are dropped, never guessed.
     only_query: run just that one query (the hosted app calls this once per request).
     max_verify: stop after checking this many leads (each check fetches a homepage), to bound the time.
@@ -255,6 +256,11 @@ def icp_search(db: DB, llm, fetcher: Fetcher, icp_cfg: dict, target: int = 20,
                 break
             checked += 1
             ok, why, home = verify_lead(db, fetcher, name, dom, resolver)
+            if ok and b2b_gate:  # pre-screen on the homepage we already fetched: no B2B software signal -> do not research
+                row = db.get_page(home)
+                txt = row["text"] if row else ""
+                if not (B2B_CUE.search(txt) and SOFTWARE_CUE.search(txt)):
+                    ok, why = False, "no B2B software signal on its homepage"
             if ok:
                 db.upsert_company(dom, name, home, origin="icp_search")
                 found.append({"domain": dom, "name": name, "source_url": home, "query": q})
