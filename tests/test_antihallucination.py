@@ -238,7 +238,9 @@ def test_confirmed_negative_news_vetoes_company(db):
     db.add_fact("acmeflow.io", "grc_job", "Head of GRC", "https://acmeflow.io/careers", "Head of GRC")
     recent = datetime.now(timezone.utc) - timedelta(days=30)
     fetch = lambda url: _rss("Acmeflow confirms data breach affecting customers", recent)
-    ids = news.check_negative_news(db, "acmeflow.io", "Acmeflow", 365, fetch=fetch, sleep=lambda s: None)
+    confirm_all = lambda domain, events: list(range(len(events)))  # the judge agrees these are about Acmeflow
+    ids = news.check_negative_news(db, "acmeflow.io", "Acmeflow", 365, fetch=fetch, sleep=lambda s: None,
+                                   judge=confirm_all)
     assert ids
     q = qualify_company(Services(db=db, cfg=ICP), "acmeflow.io")
     assert q.decision == "NO_GO" and "negative news" in q.reasons[0].text.lower()

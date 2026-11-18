@@ -11,7 +11,7 @@ from .discovery import cheap_filter, dedupe, discover, is_parked
 from .draft import make_draft
 from .extract import deterministic_facts, llm_extract
 from .llm import LLMClient
-from .news import check_negative_news, default_fetch, gap_fill_funding
+from .news import check_negative_news, default_fetch, gap_fill_funding, make_judge
 from .poc import find_poc
 from .qualify import qualify
 from .scraper import Fetcher, scrape_company
@@ -23,6 +23,7 @@ class Services:
     llm: LLMClient | None = None
     fetcher: Fetcher | None = None
     news_fetch: object = default_fetch
+    news_judge: object = None   # (domain, events) -> indices about THIS company; default: Gemini picks from the real headlines
     hunter_client: object = None
     resolver: object = None
     cfg: dict = field(default_factory=config.icp)
@@ -72,9 +73,12 @@ def research(svc: Services, domain: str, log=None) -> dict:
     # ---- step 1: Google News RSS + configured RSS (before any page of the company is fetched)
     log(f"stage:news|News + RSS check for {domain}")
     aliases = _aliases(db, domain)
+    # news is re-fetched on every run, so drop old news facts first (a stale veto must not outlive the rule that made it)
+    db.x("DELETE FROM facts WHERE domain=? AND field IN ('negative_news','news_unverified')", (domain,))
     lookback = int((cfg.get("news") or {}).get("lookback_days", 365))
+    judge = svc.news_judge or (make_judge(svc.llm) if svc.llm is not None else None)
     check_negative_news(db, domain, aliases, lookback, (cfg.get("discovery") or {}).get("rss_feeds") or [],
-                        svc.news_fetch)
+                        svc.news_fetch, judge=judge)
     if db.facts(domain, "negative_news"):
         db.set_stage(domain, "news", "vetoed", "recent negative news")
         db.set_stage(domain, "scrape", "skipped", "vetoed by recent negative news; nothing fetched")
@@ -166,10 +170,8 @@ def run_pipeline(svc: Services, domains: list[str], do_discover: bool = False,
         try:
             from .discovery import resolve_names
             got = resolve_names(db, svc.llm, svc.get_fetcher(), names,
-                                svc.resolver or __import__("socket").gethostbyname)
+                                svc.resolver or __import__("socket").gethostbyname, notes=notes)
             all_domains += [g["domain"] for g in got]
-            notes += [f"name not resolved to a verified domain: {n}" for n in names
-                      if n not in {g["name"] for g in got}]
         except Exception as e:
             notes.append(f"name resolution failed softly: {e}")
     if (do_discover or not (domains or names)) and svc.llm is not None:
@@ -183,10 +185,12 @@ def run_pipeline(svc: Services, domains: list[str], do_discover: bool = False,
             if want:
                 all_domains += [d["domain"] for d in icp_search(
                     db, svc.llm, svc.get_fetcher(), svc.cfg, want,
-                    resolver=svc.resolver or __import__("socket").gethostbyname)]
+                    resolver=svc.resolver or __import__("socket").gethostbyname, notes=notes)]
         except Exception as e:
             notes.append(f"ICP search failed softly: {e}")
     all_domains = dedupe(all_domains)
+    for n in notes:  # say WHY when discovery came up short, instead of just "0 companies"
+        log(f"note|{n}")
     log(f'found:{len(all_domains)}|{len(all_domains)} companies to research')
     if limit:
         all_domains = all_domains[:limit]

@@ -41,6 +41,10 @@ class ExtractionOut(BaseModel):
     people: list[PersonOut] = Field(default_factory=list)
 
 
+class NewsJudgeOut(BaseModel):
+    about_company: list[int] = Field(default_factory=list)  # indices of headlines about THIS company
+
+
 # ---- Discovery -----------------------------------------------------------
 class DiscoveredCompany(BaseModel):
     company_name: str

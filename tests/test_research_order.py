@@ -19,6 +19,7 @@ def _rss(title, when):
 
 def _svc(db, news_fetch, fetcher):
     return Services(db=db, llm=None, fetcher=fetcher, news_fetch=news_fetch,
+                    news_judge=lambda d, events: list(range(len(events))),  # judge confirms the headlines
                     resolver=lambda d: "1.2.3.4", cfg=config.icp())
 
 

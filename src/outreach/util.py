@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from urllib.parse import urlparse
 
 import tldextract
@@ -28,12 +29,22 @@ def registrable_domain(value: str) -> str | None:
     return f"{ext.domain}.{ext.suffix}"
 
 
+_TYPO = str.maketrans({"‘": "'", "’": "'", "“": '"', "”": '"', "–": "-", "—": "-",
+                       "−": "-", " ": " ", "​": "", "‌": "", "‍": "", "﻿": ""})
+_MARKUP = re.compile(r"[*_`#>]+")
+
+
 def norm_ws(s: str) -> str:
-    return re.sub(r"\s+", " ", s or "").strip()
+    """Whitespace + typography normalisation, applied identically to the snippet and the page text, so a model
+    that returns straight quotes for curly ones (or drops **bold** marks) is not penalised. It never invents words."""
+    s = unicodedata.normalize("NFKC", s or "").translate(_TYPO)
+    return re.sub(r"\s+", " ", _MARKUP.sub("", s)).strip()
 
 
 def snippet_in_text(snippet: str | None, text: str) -> bool:
-    """Whitespace/case-insensitive substring check. Empty snippets never pass."""
+    """Case/whitespace/typography-insensitive SUBSTRING check. Empty snippets never pass.
+    A trailing or leading ellipsis the model added to mark truncation is ignored; the words themselves must match."""
     if not snippet or not norm_ws(snippet):
         return False
-    return norm_ws(snippet).casefold() in norm_ws(text).casefold()
+    s = norm_ws(snippet).strip(" .…")
+    return bool(s) and s.casefold() in norm_ws(text).casefold()

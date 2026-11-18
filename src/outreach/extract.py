@@ -28,6 +28,32 @@ JOB_ROLE = re.compile(r"\bGRC\b|governance,? risk|compliance|information securit
                       r"trust (?:&|and) (?:safety|security)", re.I)
 
 
+B2B_CUE = re.compile(r"\b(?:book|request|get|schedule|see)\s+(?:a|your)\s+(?:personali[sz]ed\s+|live\s+|free\s+)?demo\b|"
+                     r"\b(?:contact|talk\s+to|speak\s+(?:to|with)|chat\s+with)\s+(?:our\s+)?sales\b|"
+                     r"\bper\s+(?:seat|user)\b|\bfor\s+(?:teams|enterprises?|businesses)\b", re.I)
+SOFTWARE_CUE = re.compile(r"\b(?:platform|software|saas|api|dashboard|workflow|integrations?|app)\b", re.I)
+
+
+_ORG_IN_TITLE = re.compile(r"(?:,\s*|\bat\s+|@\s*)([A-Z][\w&.\-]+(?:\s+[A-Z][\w&.\-]+)*)")
+ROLE_WORDS = {"founder", "co-founder", "cofounder", "ceo", "cto", "cfo", "coo", "cio", "ciso", "chief", "officer",
+              "head", "director", "vp", "vice", "president", "manager", "lead", "engineer", "engineering", "security",
+              "compliance", "product", "design", "marketing", "sales", "operations", "growth", "technology", "risk",
+              "governance", "privacy", "executive", "general", "senior", "principal", "staff", "partner"}
+
+
+def names_other_org(title: str, own: set[str]) -> bool:
+    """'VP of Product, Orum' / 'CTO at Globex' -> True unless the organization is this company itself.
+    Only the TITLE is inspected; role words ('Co-founder') are not organizations."""
+    for m in _ORG_IN_TITLE.finditer(title or ""):
+        words = m.group(1).casefold().split()
+        if all(w.strip(".,") in ROLE_WORDS for w in words):
+            continue
+        org = " ".join(words)
+        if not any(o and (o in org or org in o) for o in own):
+            return True
+    return False
+
+
 def is_jobs_url(url: str) -> bool:
     p = urlparse(url)
     h = p.netloc.lower()
@@ -88,6 +114,12 @@ def deterministic_facts(db: DB, domain: str, competitors: list[str]) -> int:
         if comp_rx:
             for m in comp_rx.finditer(text):
                 add("competitor_tool", m.group(1).title(), m.start(), m.end())
+        # B2B SaaS evidence the page states itself: a sales/demo cue AND a software cue (the evidence map's
+        # "demo, pricing, login, API docs"). The quoted snippet is the page's own sentence, so it is fully grounded.
+        if SOFTWARE_CUE.search(text):
+            m = B2B_CUE.search(text)
+            if m:
+                add("is_b2b_saas", "true", m.start(), m.end())
         if is_jobs_url(url):
             seen = 0
             for line in text.split("\n"):
@@ -143,7 +175,7 @@ PROMPT = """Extract these fields from the pages below.
 - headcount: employee count or range, only if the text says it.
 - eu_or_regulated_customers: only if the text names EU/regulated customers or offices.
 - named_customers: customer names the text lists (value = the name).
-- people: named people WITH their title as printed on the page (security/compliance/engineering leaders and founders especially).
+- people: named people WITH their title as printed on the page, ONLY if they work at THIS company (leadership, security/compliance/engineering leaders, founders). Exclude customers, people quoted in testimonials, investors and advisors, anyone whose title names a different organization.
 Return null / [] when absent.
 
 {pages}"""
@@ -192,7 +224,11 @@ def llm_extract(db: DB, domain: str, llm: LLMClient) -> dict:
     keep("eu_regulated", out.eu_or_regulated_customers)
     for c in out.named_customers:
         keep("named_customer", c, lambda f: f.value.casefold() in norm_ws(f.snippet).casefold())
+    own = {domain.split(".")[0].casefold()} | {r["value"].casefold() for r in db.facts(domain, "company_name")}
     for p in out.people:
+        if names_other_org(p.title, own):  # a customer quoted in a testimonial is not an employee
+            dropped.append(f"person {p.name}: title names another organization ({p.title})")
+            continue
         f = FieldOut(value=f"{p.name} | {p.title}", source_url=p.source_url, snippet=p.snippet)
         keep("person", f, lambda f, p=p: p.name.casefold() in norm_ws(p.snippet).casefold()
              and p.title.casefold() in norm_ws(p.snippet).casefold())

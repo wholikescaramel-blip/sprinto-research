@@ -202,9 +202,11 @@ async function runHosted(body) {
   try {
     setStage('discover'); log('Looking for companies…');
     let companies = [], qi = 0, calls = 0;
+    const seenNotes = new Set();
     const hasInput = body.inputs.trim().length > 0;
     do {
       const r = await api('/api/step/discover', { method: 'POST', body: { inputs: body.inputs, query_index: qi } });
+      for (const n of (r.notes || [])) if (!seenNotes.has(n)) { seenNotes.add(n); log(`note: ${n}`); }
       for (const c of r.companies) if (!companies.some((x) => x.domain === c.domain)) { companies.push(c); log(`+ ${c.domain}`); }
       qi = r.next_query; calls++;
     } while (!hasInput && qi !== null && companies.length < cap && calls < 6);

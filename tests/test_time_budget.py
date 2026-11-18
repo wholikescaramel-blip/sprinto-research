@@ -20,11 +20,13 @@ class Clock:
         self.t += s
 
 
-def slow_site(clock: Clock, per_request: float) -> httpx.Client:
+def slow_site(clock: Clock, per_request: float, pages=None) -> httpx.Client:
     """Serves the Acmeflow fixtures; every request (including robots.txt) costs `per_request` seconds."""
+    site = ACME_PAGES if pages is None else pages
+
     def handler(req: httpx.Request) -> httpx.Response:
         clock.t += per_request
-        name = ACME_PAGES.get(req.url.path)
+        name = site.get(req.url.path)
         if name is None:
             return httpx.Response(404, text="nf", headers={"content-type": "text/html"})
         return httpx.Response(200, text=(SITE / name).read_text(encoding="utf-8"),
@@ -32,9 +34,9 @@ def slow_site(clock: Clock, per_request: float) -> httpx.Client:
     return httpx.Client(transport=httpx.MockTransport(handler), follow_redirects=True)
 
 
-def fetcher(db, clock, per_request, budget=30, **kw):
+def fetcher(db, clock, per_request, budget=30, pages=None, **kw):
     return Fetcher(db, max_fetches=8, delay=1.0, time_budget=budget, clock=clock, sleep=clock.sleep,
-                   client=slow_site(clock, per_request), **kw)
+                   client=slow_site(clock, per_request, pages), **kw)
 
 
 def test_slow_site_is_cut_off_at_the_budget(db):
@@ -87,7 +89,10 @@ def test_rerun_resumes_from_cache_so_quality_is_recoverable(db):
 
 def test_time_limit_with_unverified_b2b_is_reported_not_guessed(db):
     clock = Clock()
-    svc = Services(db=db, llm=None, fetcher=fetcher(db, clock, per_request=10), news_fetch=lambda u: EMPTY_RSS,
+    # a homepage with no demo/sales/software cue: nothing on it proves B2B SaaS, and time runs out before more pages
+    no_b2b_home = {"/": "about.html", "/security": "security.html", "/pricing": "pricing.html"}
+    svc = Services(db=db, llm=None, fetcher=fetcher(db, clock, per_request=10, pages=no_b2b_home),
+                   news_fetch=lambda u: EMPTY_RSS,
                    resolver=lambda d: "1.2.3.4", cfg=config.icp())
     r = research(svc, "acmeflow.io")
     assert r["time_hit"] and r["status"] == "insufficient_data"

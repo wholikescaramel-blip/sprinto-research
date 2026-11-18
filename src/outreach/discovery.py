@@ -181,30 +181,75 @@ def verify_lead(db: DB, fetcher: Fetcher, name: str, domain: str,
     return True, "name found on homepage", page.url
 
 
+def _why(e: Exception) -> str:
+    s = str(e)
+    if "RESOURCE_EXHAUSTED" in s or "429" in s:
+        return "quota exhausted"
+    if "503" in s or "UNAVAILABLE" in s:
+        return "model overloaded"
+    return s[:140]
+
+
+def _ask(llm, grounded_prompt: str, plain_prompt: str, notes: list[str]) -> str | None:
+    """Google Search first; if that is unavailable (quota, outage) fall back to Gemini's own knowledge.
+    Either way the leads are only LEADS: each one is verified against its own homepage before use."""
+    def note(msg: str):
+        if msg not in notes:
+            notes.append(msg)
+    try:
+        return llm.grounded_search(grounded_prompt)
+    except Exception as e:
+        note(f"Google Search lookup unavailable ({_why(e)}); using Gemini's own knowledge instead. "
+             "Every lead is still verified against its own homepage.")
+    gen = getattr(llm, "generate_text", None)
+    if gen is None:
+        return None
+    try:
+        return gen(plain_prompt)
+    except Exception as e:
+        note(f"Gemini is unavailable ({_why(e)}). Nothing could be discovered; try again shortly.")
+        return None
+
+
 def icp_search(db: DB, llm, fetcher: Fetcher, icp_cfg: dict, target: int = 20,
                max_queries: int = 8, resolver: Callable[[str], str] = socket.gethostbyname,
-               only_query: int | None = None, max_verify: int | None = None) -> list[dict]:
+               only_query: int | None = None, max_verify: int | None = None,
+               notes: list[str] | None = None) -> list[dict]:
     """Find up to `target` NEW verified companies. Unverifiable leads are dropped, never guessed.
     only_query: run just that one query (the hosted app calls this once per request).
-    max_verify: stop after checking this many leads (each check fetches a homepage), to bound the time."""
+    max_verify: stop after checking this many leads (each check fetches a homepage), to bound the time.
+    notes: human-readable reasons are appended here (quota, outages, why leads were dropped)."""
+    notes = notes if notes is not None else []
     known = {r["domain"] for r in db.q("SELECT domain FROM companies")}
     found: list[dict] = []
-    checked = 0
+    checked, drops = 0, {}
+    competitors = {_norm(c) for c in (icp_cfg.get("competitors") or [])}
+    skipped_competitors: set[str] = set()
     queries = default_queries(icp_cfg)
     queries = [queries[only_query]] if only_query is not None and only_query < len(queries) else queries[:max_queries]
     for q in queries:
         if len(found) >= target or (max_verify is not None and checked >= max_verify):
             break
-        prompt = (f"Use web search. Find up to {target} REAL companies matching: {q}.\n"
-                  "Only list companies you actually found on pages in your search results. "
-                  "Output one per line, exactly: Company Name | companydomain.com\n"
-                  "Leave out any company whose website domain you did not see. No other text.")
-        try:
-            text = llm.grounded_search(prompt)
-        except Exception:
-            continue  # fail soft
-        for name, dom in parse_leads(text):
+        text = _ask(llm,
+                    (f"Use web search. Find up to {target} REAL companies matching: {q}.\n"
+                     "Only list companies you actually found on pages in your search results. "
+                     "Output one per line, exactly: Company Name | companydomain.com\n"
+                     "Leave out any company whose website domain you did not see. No other text."),
+                    (f"You have no web access. From your own knowledge, list up to {target} REAL B2B SaaS "
+                     f"companies that likely match: {q}.\nOnly include companies whose website domain you are "
+                     "certain of. Output one per line, exactly: Company Name | companydomain.com\n"
+                     "Leave out anything you are unsure about. No other text."),
+                    notes)
+        if text is None:
+            continue
+        leads = parse_leads(text)
+        if not leads and text.strip():
+            notes.append("Gemini answered but the reply had no 'Name | domain' lines; nothing to verify.")
+        for name, dom in leads:
             if dom in known or any(f["domain"] == dom for f in found):
+                continue
+            if _norm(name) in competitors or _norm(dom.split(".")[0]) in competitors:
+                skipped_competitors.add(name)  # a competitor is not a prospect
                 continue
             if max_verify is not None and checked >= max_verify:
                 break
@@ -215,25 +260,43 @@ def icp_search(db: DB, llm, fetcher: Fetcher, icp_cfg: dict, target: int = 20,
                 found.append({"domain": dom, "name": name, "source_url": home, "query": q})
                 if len(found) >= target:
                     break
+            else:
+                key = "name not on its homepage" if "does not mention" in why else why
+                drops[key] = drops.get(key, 0) + 1
+    if skipped_competitors:
+        notes.append(f"Skipped competitors: {', '.join(sorted(skipped_competitors))}.")
+    if checked:
+        lost = "; ".join(f"{n} {k}" for k, n in drops.items())
+        notes.append(f"Checked {checked} lead(s), verified {len(found)}" + (f". Dropped: {lost}." if lost else "."))
     return found
 
 
 def resolve_names(db: DB, llm, fetcher: Fetcher, names: list[str],
-                  resolver: Callable[[str], str] = socket.gethostbyname) -> list[dict]:
+                  resolver: Callable[[str], str] = socket.gethostbyname,
+                  notes: list[str] | None = None) -> list[dict]:
     """Company NAMES (no domain) -> verified domains, or dropped."""
+    notes = notes if notes is not None else []
     out = []
     for name in names:
-        try:
-            text = llm.grounded_search(f"Use web search. What is the official website domain of the "
-                                       f"B2B software company '{name}'? Reply exactly: {name} | domain.com "
-                                       "or UNKNOWN.")
-        except Exception:
+        text = _ask(llm,
+                    (f"Use web search. What is the official website domain of the B2B software company "
+                     f"'{name}'? Reply exactly: {name} | domain.com or UNKNOWN."),
+                    (f"You have no web access. From your own knowledge, what is the official website domain of "
+                     f"the B2B software company '{name}'? Reply exactly: {name} | domain.com or UNKNOWN. "
+                     "If you are not certain, reply UNKNOWN."),
+                    notes)
+        if text is None:
             continue
-        for _n, dom in parse_leads(text.replace("UNKNOWN", ""))[:1]:
+        leads = parse_leads(text.replace("UNKNOWN", ""))[:1]
+        if not leads:
+            notes.append(f"Could not find a website for '{name}'. Paste its domain instead.")
+        for _n, dom in leads:
             ok, why, home = verify_lead(db, fetcher, name, dom, resolver)
             if ok:
                 db.upsert_company(dom, name, home, origin="name_lookup")
                 out.append({"domain": dom, "name": name, "source_url": home})
+            else:
+                notes.append(f"'{name}' -> {dom}: {why}")
     return out
 
 
@@ -245,10 +308,11 @@ def read_inputs(path: str | Path) -> tuple[list[str], list[str]]:
 def parse_inputs(text: str) -> tuple[list[str], list[str]]:
     """Text lines that are valid domains/URLs -> domains; everything else -> company names."""
     doms, names = [], []
-    for line in text.splitlines():
-        line = line.split("#")[0].strip()
-        if not line:
-            continue
-        d = registrable_domain(line) if ("." in line and " " not in line) else None
-        (doms if d else names).append(d or line)
+    for raw in text.splitlines():
+        for line in re.split(r"[,;]", raw.split("#")[0]):  # "acme.com, rocketlane" is two entries, not one
+            line = line.strip()
+            if not line:
+                continue
+            d = registrable_domain(line) if ("." in line and " " not in line) else None
+            (doms if d else names).append(d or line)
     return doms, names

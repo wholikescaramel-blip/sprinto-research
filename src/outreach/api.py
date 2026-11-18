@@ -264,6 +264,7 @@ def step_discover(req: StepDiscoverReq):
     db, cfg = get_db(), config.icp()
     doms, names = parse_inputs(req.inputs)
     found: list[dict] = []
+    notes: list[str] = []
     if doms or names:
         if req.query_index == 0:
             for d in dedupe(doms):
@@ -273,17 +274,17 @@ def step_discover(req: StepDiscoverReq):
                 _cap(db, "discover", "DAILY_DISCOVER_CAP", 30)
                 svc = Services(db=db, llm=make_llm(), cfg=cfg)
                 found += [{"domain": r["domain"], "name": r["name"]}
-                          for r in resolve_names(db, svc.llm, svc.get_fetcher(), names[:5])]
-        return {"companies": found, "next_query": None}
+                          for r in resolve_names(db, svc.llm, svc.get_fetcher(), names[:5], notes=notes)]
+        return {"companies": found, "next_query": None, "notes": notes}
     queries = default_queries(cfg)
     i = max(0, req.query_index)
     if i >= len(queries):
         return {"companies": [], "next_query": None}
     _cap(db, "discover", "DAILY_DISCOVER_CAP", 30)
     svc = Services(db=db, llm=make_llm(), cfg=cfg)
-    got = icp_search(db, svc.llm, svc.get_fetcher(), cfg, target=8, only_query=i, max_verify=6)
+    got = icp_search(db, svc.llm, svc.get_fetcher(), cfg, target=8, only_query=i, max_verify=6, notes=notes)
     return {"companies": [{"domain": g["domain"], "name": g["name"]} for g in got],
-            "next_query": i + 1 if i + 1 < len(queries) else None}
+            "next_query": i + 1 if i + 1 < len(queries) else None, "notes": notes}
 
 
 @app.post("/api/step/research")
