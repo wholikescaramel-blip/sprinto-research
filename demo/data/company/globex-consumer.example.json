@@ -1,0 +1,74 @@
+{
+ "domain": "globex-consumer.example",
+ "origin": "icp_search",
+ "source_url": "https://globex-consumer.example/",
+ "stages": [
+  {
+   "stage": "extract",
+   "status": "done",
+   "error": null
+  },
+  {
+   "stage": "qualify",
+   "status": "done",
+   "error": null
+  },
+  {
+   "stage": "scrape",
+   "status": "done",
+   "error": null
+  }
+ ],
+ "qualification": {
+  "domain": "globex-consumer.example",
+  "decision": "NO_GO",
+  "score": 0.0,
+  "confidence": "low",
+  "unknowns": [],
+  "passes_threshold": false,
+  "rubric_version": 1,
+  "reasons": [
+   {
+    "text": "Not B2B SaaS per the company's own pages",
+    "facts": [
+     {
+      "id": "F02cba8a",
+      "field": "is_b2b_saas",
+      "value": "false",
+      "snippet": "Download our free app for your household.",
+      "source_url": "https://globex-consumer.example/",
+      "fetched_at": "2026-11-18T13:24:11+00:00"
+     }
+    ]
+   }
+  ]
+ },
+ "poc": null,
+ "facts": [
+  {
+   "id": "Fbf1cf59",
+   "domain": "globex-consumer.example",
+   "field": "company_name",
+   "value": "Globex",
+   "source_url": "https://globex-consumer.example/",
+   "snippet": "Globex makes budgeting apps for families.",
+   "page_id": null,
+   "fetched_at": "2026-11-18T13:24:11+00:00",
+   "created_at": "2026-11-18T13:24:11+00:00",
+   "updated_at": "2026-11-18T13:24:11+00:00"
+  },
+  {
+   "id": "F02cba8a",
+   "domain": "globex-consumer.example",
+   "field": "is_b2b_saas",
+   "value": "false",
+   "source_url": "https://globex-consumer.example/",
+   "snippet": "Download our free app for your household.",
+   "page_id": null,
+   "fetched_at": "2026-11-18T13:24:11+00:00",
+   "created_at": "2026-11-18T13:24:11+00:00",
+   "updated_at": "2026-11-18T13:24:11+00:00"
+  }
+ ],
+ "drafts": []
+}

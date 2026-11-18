@@ -1,0 +1,250 @@
+{
+ "domain": "northwind-labs.example",
+ "origin": "icp_search",
+ "source_url": "https://northwind-labs.example/",
+ "stages": [
+  {
+   "stage": "draft",
+   "status": "done",
+   "error": null
+  },
+  {
+   "stage": "extract",
+   "status": "done",
+   "error": null
+  },
+  {
+   "stage": "poc",
+   "status": "done",
+   "error": null
+  },
+  {
+   "stage": "qualify",
+   "status": "done",
+   "error": null
+  },
+  {
+   "stage": "scrape",
+   "status": "done",
+   "error": null
+  }
+ ],
+ "qualification": {
+  "domain": "northwind-labs.example",
+  "decision": "GO_FLAGGED",
+  "score": 6.0,
+  "confidence": "medium",
+  "unknowns": [
+   "cert_status"
+  ],
+  "passes_threshold": true,
+  "rubric_version": 1,
+  "reasons": [
+   {
+    "text": "B2B SaaS confirmed",
+    "facts": [
+     {
+      "id": "Ffd68e8c",
+      "field": "is_b2b_saas",
+      "value": "true",
+      "snippet": "Per-seat pricing for finance teams. Book a demo.",
+      "source_url": "https://northwind-labs.example/",
+      "fetched_at": "2026-11-18T13:24:11+00:00"
+     }
+    ]
+   },
+   {
+    "text": "Compliance trigger: Enterprise/compliance-pressure signal",
+    "facts": [
+     {
+      "id": "Fed13873",
+      "field": "enterprise_signal",
+      "value": "trust center",
+      "snippet": "Visit our trust center for our latest security documents.",
+      "source_url": "https://northwind-labs.example/trust",
+      "fetched_at": "2026-11-18T13:24:11+00:00"
+     }
+    ]
+   },
+   {
+    "text": "Stage in ICP: Series B",
+    "facts": [
+     {
+      "id": "Fdab1459",
+      "field": "funding_stage",
+      "value": "Series B",
+      "snippet": "Northwind Labs raised a Series B round led by Fjord Capital.",
+      "source_url": "https://northwind-labs.example/about",
+      "fetched_at": "2026-11-18T13:24:11+00:00"
+     }
+    ]
+   },
+   {
+    "text": "EU/regulated signal: GDPR",
+    "facts": [
+     {
+      "id": "F0c74e88",
+      "field": "eu_regulated",
+      "value": "GDPR",
+      "snippet": "We process personal data in line with the GDPR.",
+      "source_url": "https://northwind-labs.example/privacy",
+      "fetched_at": "2026-11-18T13:24:11+00:00"
+     }
+    ]
+   }
+  ]
+ },
+ "poc": {
+  "domain": "northwind-labs.example",
+  "status": "ok",
+  "name": "Marcus Lee",
+  "title": "CTO",
+  "email": "marcus@northwind-labs.example",
+  "email_status": "verified",
+  "source": "apollo_manual",
+  "confidence": null,
+  "verification": null,
+  "role_type": "cto_vp_eng",
+  "reason": "Manual Apollo lookup from config/manual_pocs.yaml",
+  "guessed_email": null
+ },
+ "facts": [
+  {
+   "id": "F7f74392",
+   "domain": "northwind-labs.example",
+   "field": "company_name",
+   "value": "Northwind Labs",
+   "source_url": "https://northwind-labs.example/",
+   "snippet": "Northwind Labs builds analytics software for finance teams.",
+   "page_id": null,
+   "fetched_at": "2026-11-18T13:24:11+00:00",
+   "created_at": "2026-11-18T13:24:11+00:00",
+   "updated_at": "2026-11-18T13:24:11+00:00"
+  },
+  {
+   "id": "Fed13873",
+   "domain": "northwind-labs.example",
+   "field": "enterprise_signal",
+   "value": "trust center",
+   "source_url": "https://northwind-labs.example/trust",
+   "snippet": "Visit our trust center for our latest security documents.",
+   "page_id": null,
+   "fetched_at": "2026-11-18T13:24:11+00:00",
+   "created_at": "2026-11-18T13:24:11+00:00",
+   "updated_at": "2026-11-18T13:24:11+00:00"
+  },
+  {
+   "id": "F0c74e88",
+   "domain": "northwind-labs.example",
+   "field": "eu_regulated",
+   "value": "GDPR",
+   "source_url": "https://northwind-labs.example/privacy",
+   "snippet": "We process personal data in line with the GDPR.",
+   "page_id": null,
+   "fetched_at": "2026-11-18T13:24:11+00:00",
+   "created_at": "2026-11-18T13:24:11+00:00",
+   "updated_at": "2026-11-18T13:24:11+00:00"
+  },
+  {
+   "id": "Fdab1459",
+   "domain": "northwind-labs.example",
+   "field": "funding_stage",
+   "value": "Series B",
+   "source_url": "https://northwind-labs.example/about",
+   "snippet": "Northwind Labs raised a Series B round led by Fjord Capital.",
+   "page_id": null,
+   "fetched_at": "2026-11-18T13:24:11+00:00",
+   "created_at": "2026-11-18T13:24:11+00:00",
+   "updated_at": "2026-11-18T13:24:11+00:00"
+  },
+  {
+   "id": "Ffd68e8c",
+   "domain": "northwind-labs.example",
+   "field": "is_b2b_saas",
+   "value": "true",
+   "source_url": "https://northwind-labs.example/",
+   "snippet": "Per-seat pricing for finance teams. Book a demo.",
+   "page_id": null,
+   "fetched_at": "2026-11-18T13:24:11+00:00",
+   "created_at": "2026-11-18T13:24:11+00:00",
+   "updated_at": "2026-11-18T13:24:11+00:00"
+  }
+ ],
+ "drafts": [
+  {
+   "id": 2,
+   "status": "pending_review",
+   "subject": "Northwind's trust center",
+   "body": "Hi Marcus,\n\nNoticed Northwind Labs runs a public trust center.\n\nAre security questionnaires from larger buyers pulling engineers off product work?\n\nSprinto lets you launch a Trust Center and complete security questionnaires in minutes.\n\nWorth a short call?\n\nBest,\nKay Dee\nSprinto",
+   "rubric_version": 1,
+   "gmail_id": null,
+   "sent_mode": null,
+   "check": {
+    "passed": true,
+    "failures": [],
+    "warnings": []
+   },
+   "pain_points": [],
+   "sentences": [
+    {
+     "text": "Noticed Northwind Labs runs a public trust center.",
+     "type": "hook",
+     "fact_ids": [
+      "Fed13873"
+     ],
+     "facts": [
+      {
+       "id": "Fed13873",
+       "field": "enterprise_signal",
+       "value": "trust center",
+       "snippet": "Visit our trust center for our latest security documents.",
+       "source_url": "https://northwind-labs.example/trust",
+       "fetched_at": "2026-11-18T13:24:11+00:00"
+      }
+     ]
+    },
+    {
+     "text": "Are security questionnaires from larger buyers pulling engineers off product work?",
+     "type": "pain",
+     "fact_ids": [
+      "Fed13873"
+     ],
+     "facts": [
+      {
+       "id": "Fed13873",
+       "field": "enterprise_signal",
+       "value": "trust center",
+       "snippet": "Visit our trust center for our latest security documents.",
+       "source_url": "https://northwind-labs.example/trust",
+       "fetched_at": "2026-11-18T13:24:11+00:00"
+      }
+     ]
+    },
+    {
+     "text": "Sprinto lets you launch a Trust Center and complete security questionnaires in minutes.",
+     "type": "pitch",
+     "fact_ids": [
+      "S5"
+     ],
+     "facts": [
+      {
+       "id": "S5",
+       "field": "sprinto_claim",
+       "value": "Sprinto lets you launch a Trust Center and complete security questionnaires in minutes.",
+       "snippet": null,
+       "source_url": "config/sprinto_facts.yaml",
+       "fetched_at": null
+      }
+     ]
+    },
+    {
+     "text": "Worth a short call?",
+     "type": "cta",
+     "fact_ids": [],
+     "facts": []
+    }
+   ],
+   "reviews": []
+  }
+ ]
+}

@@ -1,0 +1,275 @@
+{
+ "domain": "acmeflow.example",
+ "origin": "icp_search",
+ "source_url": "https://acmeflow.example/",
+ "stages": [
+  {
+   "stage": "draft",
+   "status": "done",
+   "error": null
+  },
+  {
+   "stage": "extract",
+   "status": "done",
+   "error": null
+  },
+  {
+   "stage": "poc",
+   "status": "done",
+   "error": null
+  },
+  {
+   "stage": "qualify",
+   "status": "done",
+   "error": null
+  },
+  {
+   "stage": "scrape",
+   "status": "done",
+   "error": null
+  }
+ ],
+ "qualification": {
+  "domain": "acmeflow.example",
+  "decision": "GO_FLAGGED",
+  "score": 5.0,
+  "confidence": "medium",
+  "unknowns": [
+   "cert_status"
+  ],
+  "passes_threshold": true,
+  "rubric_version": 1,
+  "reasons": [
+   {
+    "text": "B2B SaaS confirmed",
+    "facts": [
+     {
+      "id": "F310cc4d",
+      "field": "is_b2b_saas",
+      "value": "true",
+      "snippet": "Book a demo to see it in action.",
+      "source_url": "https://acmeflow.example/",
+      "fetched_at": "2026-11-18T13:24:11+00:00"
+     }
+    ]
+   },
+   {
+    "text": "Compliance trigger: SOC 2 audit in progress",
+    "facts": [
+     {
+      "id": "Fab1fca0",
+      "field": "soc2_in_progress",
+      "value": "SOC 2 in progress",
+      "snippet": "We are currently working toward our SOC 2 Type II audit, with the observation window starting this quarter.",
+      "source_url": "https://acmeflow.example/security",
+      "fetched_at": "2026-11-18T13:24:11+00:00"
+     }
+    ]
+   },
+   {
+    "text": "Compliance trigger: Hiring for a GRC/security/compliance role",
+    "facts": [
+     {
+      "id": "F57df7b5",
+      "field": "grc_job",
+      "value": "Head of GRC",
+      "snippet": "Head of GRC",
+      "source_url": "https://acmeflow.example/careers",
+      "fetched_at": "2026-11-18T13:24:11+00:00"
+     }
+    ]
+   },
+   {
+    "text": "Compliance trigger: Enterprise/compliance-pressure signal",
+    "facts": [
+     {
+      "id": "F31fe8e6",
+      "field": "enterprise_signal",
+      "value": "security questionnaire",
+      "snippet": "a signed Data Processing Agreement and security questionnaire support.",
+      "source_url": "https://acmeflow.example/pricing",
+      "fetched_at": "2026-11-18T13:24:11+00:00"
+     }
+    ]
+   },
+   {
+    "text": "Headcount in ICP range: 85 employees",
+    "facts": [
+     {
+      "id": "F3a40879",
+      "field": "headcount",
+      "value": "85 employees",
+      "snippet": "We are a team of 85 employees working across three time zones.",
+      "source_url": "https://acmeflow.example/about",
+      "fetched_at": "2026-11-18T13:24:11+00:00"
+     }
+    ]
+   }
+  ]
+ },
+ "poc": {
+  "domain": "acmeflow.example",
+  "status": "ok",
+  "name": "Priya Nair",
+  "title": "Head of Security",
+  "email": "priya@acmeflow.example",
+  "email_status": "sourced",
+  "source": "hunter",
+  "confidence": 92,
+  "verification": "valid",
+  "role_type": "security_head",
+  "reason": "Hunter: best role match (security_head; confidence 92)",
+  "guessed_email": null
+ },
+ "facts": [
+  {
+   "id": "Fdf11d33",
+   "domain": "acmeflow.example",
+   "field": "company_name",
+   "value": "Acmeflow",
+   "source_url": "https://acmeflow.example/",
+   "snippet": "Acmeflow is a cloud platform that helps operations teams automate approvals.",
+   "page_id": null,
+   "fetched_at": "2026-11-18T13:24:11+00:00",
+   "created_at": "2026-11-18T13:24:11+00:00",
+   "updated_at": "2026-11-18T13:24:11+00:00"
+  },
+  {
+   "id": "F31fe8e6",
+   "domain": "acmeflow.example",
+   "field": "enterprise_signal",
+   "value": "security questionnaire",
+   "source_url": "https://acmeflow.example/pricing",
+   "snippet": "a signed Data Processing Agreement and security questionnaire support.",
+   "page_id": null,
+   "fetched_at": "2026-11-18T13:24:11+00:00",
+   "created_at": "2026-11-18T13:24:11+00:00",
+   "updated_at": "2026-11-18T13:24:11+00:00"
+  },
+  {
+   "id": "F57df7b5",
+   "domain": "acmeflow.example",
+   "field": "grc_job",
+   "value": "Head of GRC",
+   "source_url": "https://acmeflow.example/careers",
+   "snippet": "Head of GRC",
+   "page_id": null,
+   "fetched_at": "2026-11-18T13:24:11+00:00",
+   "created_at": "2026-11-18T13:24:11+00:00",
+   "updated_at": "2026-11-18T13:24:11+00:00"
+  },
+  {
+   "id": "F3a40879",
+   "domain": "acmeflow.example",
+   "field": "headcount",
+   "value": "85 employees",
+   "source_url": "https://acmeflow.example/about",
+   "snippet": "We are a team of 85 employees working across three time zones.",
+   "page_id": null,
+   "fetched_at": "2026-11-18T13:24:11+00:00",
+   "created_at": "2026-11-18T13:24:11+00:00",
+   "updated_at": "2026-11-18T13:24:11+00:00"
+  },
+  {
+   "id": "F310cc4d",
+   "domain": "acmeflow.example",
+   "field": "is_b2b_saas",
+   "value": "true",
+   "source_url": "https://acmeflow.example/",
+   "snippet": "Book a demo to see it in action.",
+   "page_id": null,
+   "fetched_at": "2026-11-18T13:24:11+00:00",
+   "created_at": "2026-11-18T13:24:11+00:00",
+   "updated_at": "2026-11-18T13:24:11+00:00"
+  },
+  {
+   "id": "Fab1fca0",
+   "domain": "acmeflow.example",
+   "field": "soc2_in_progress",
+   "value": "SOC 2 in progress",
+   "source_url": "https://acmeflow.example/security",
+   "snippet": "We are currently working toward our SOC 2 Type II audit, with the observation window starting this quarter.",
+   "page_id": null,
+   "fetched_at": "2026-11-18T13:24:11+00:00",
+   "created_at": "2026-11-18T13:24:11+00:00",
+   "updated_at": "2026-11-18T13:24:11+00:00"
+  }
+ ],
+ "drafts": [
+  {
+   "id": 1,
+   "status": "pending_review",
+   "subject": "Your Head of GRC opening",
+   "body": "Hi Priya,\n\nSaw Acmeflow is hiring a Head of GRC.\n\nWith the SOC 2 Type II audit window opening, is evidence collection landing on your team?\n\nSprinto monitors your controls around the clock and, when something drifts, closes gaps, refreshes evidence and routes approvals.\n\nOpen to a quick chat this week?\n\nBest,\nKay Dee\nSprinto",
+   "rubric_version": 1,
+   "gmail_id": null,
+   "sent_mode": null,
+   "check": {
+    "passed": true,
+    "failures": [],
+    "warnings": []
+   },
+   "pain_points": [],
+   "sentences": [
+    {
+     "text": "Saw Acmeflow is hiring a Head of GRC.",
+     "type": "hook",
+     "fact_ids": [
+      "F57df7b5"
+     ],
+     "facts": [
+      {
+       "id": "F57df7b5",
+       "field": "grc_job",
+       "value": "Head of GRC",
+       "snippet": "Head of GRC",
+       "source_url": "https://acmeflow.example/careers",
+       "fetched_at": "2026-11-18T13:24:11+00:00"
+      }
+     ]
+    },
+    {
+     "text": "With the SOC 2 Type II audit window opening, is evidence collection landing on your team?",
+     "type": "pain",
+     "fact_ids": [
+      "Fab1fca0"
+     ],
+     "facts": [
+      {
+       "id": "Fab1fca0",
+       "field": "soc2_in_progress",
+       "value": "SOC 2 in progress",
+       "snippet": "We are currently working toward our SOC 2 Type II audit, with the observation window starting this quarter.",
+       "source_url": "https://acmeflow.example/security",
+       "fetched_at": "2026-11-18T13:24:11+00:00"
+      }
+     ]
+    },
+    {
+     "text": "Sprinto monitors your controls around the clock and, when something drifts, closes gaps, refreshes evidence and routes approvals.",
+     "type": "pitch",
+     "fact_ids": [
+      "S2"
+     ],
+     "facts": [
+      {
+       "id": "S2",
+       "field": "sprinto_claim",
+       "value": "Sprinto monitors your controls around the clock and, when something drifts, closes gaps, refreshes evidence and routes approvals.",
+       "snippet": null,
+       "source_url": "config/sprinto_facts.yaml",
+       "fetched_at": null
+      }
+     ]
+    },
+    {
+     "text": "Open to a quick chat this week?",
+     "type": "cta",
+     "fact_ids": [],
+     "facts": []
+    }
+   ],
+   "reviews": []
+  }
+ ]
+}

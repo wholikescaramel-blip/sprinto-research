@@ -1,0 +1,35 @@
+{
+ "mode": "TEST",
+ "my_email_set": false,
+ "gemini_ready": false,
+ "hunter_ready": false,
+ "hunter_used": 0,
+ "gmail_ready": false,
+ "demo": true,
+ "companies": 4,
+ "qualifications": {
+  "GO_FLAGGED": 3,
+  "NO_GO": 1
+ },
+ "drafts": {
+  "blocked": 1,
+  "pending_review": 2
+ },
+ "reason_tags": [
+  "wrong_hook",
+  "wrong_person",
+  "too_generic",
+  "tone",
+  "factually_off",
+  "bad_fit",
+  "other"
+ ],
+ "run": {
+  "running": false,
+  "stage": null,
+  "found": 0,
+  "started": null,
+  "finished": null
+ },
+ "readonly": true
+}

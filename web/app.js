@@ -5,7 +5,45 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 gsap.registerPlugin(ScrollTrigger);
 
+/* Hosted demo (Vercel): window.DEMO_STATIC is set by the build. Reads come from static JSON snapshots of the
+   fictional demo data; approve/discard are applied in the browser only; send and run are disabled. */
+const DEMO = window.DEMO_STATIC === true;
+const demoOverlay = {}; // draft id -> 'approved' | 'discarded' (lives in this tab only)
+async function demoJson(file) {
+  const r = await fetch('/data/' + file);
+  if (!r.ok) throw new Error('Not available in the demo');
+  return r.json();
+}
+async function demoApi(path, opts = {}) {
+  if ((opts.method || 'GET') !== 'GET') {
+    const m = path.match(/^\/api\/drafts\/(\d+)\/review$/);
+    if (m) {
+      const b = opts.body || {};
+      if (!['approve', 'edit', 'discard'].includes(b.action) || !['good', 'bad'].includes(b.label)) throw new Error('Invalid review');
+      demoOverlay[m[1]] = b.action === 'discard' ? 'discarded' : 'approved';
+      return { ok: true };
+    }
+    if (/\/send$/.test(path)) throw new Error('Demo is read-only: nothing is sent. Run the app locally to send a TEST email to your own inbox.');
+    if (path === '/api/run') throw new Error('Demo is read-only. Run the pipeline locally on real companies (see the README).');
+    throw new Error('Not available in the demo');
+  }
+  if (path === '/api/run') return { running: false, log: [], stage: null, found: 0, summary: null, error: null };
+  if (path === '/api/companies') return demoJson('companies.json');
+  if (path.startsWith('/api/company/')) return demoJson('company/' + decodeURIComponent(path.split('/').pop()) + '.json');
+  const base = await demoJson('review-queue.json');
+  if (path === '/api/review-queue') {
+    return base.filter((d) => demoOverlay[d.id] !== 'discarded').map((d) => (demoOverlay[d.id] === 'approved' ? { ...d, status: 'approved' } : d));
+  }
+  if (path === '/api/status') {
+    const s = await demoJson('status.json'), counts = {};
+    base.forEach((d) => { const st = demoOverlay[d.id] === 'discarded' ? 'discarded' : demoOverlay[d.id] === 'approved' ? 'approved' : d.status; counts[st] = (counts[st] || 0) + 1; });
+    return { ...s, drafts: counts };
+  }
+  throw new Error('Not available in the demo');
+}
+
 async function api(path, opts = {}) {
+  if (DEMO) return demoApi(path, opts);
   const r = await fetch(path, {
     method: opts.method || 'GET',
     headers: { 'Content-Type': 'application/json' },
@@ -84,15 +122,23 @@ async function loadStatus() {
   const s = (state.status = await api('/api/status'));
   const mode = $('#mode-chip');
   mode.textContent = s.mode; mode.classList.toggle('live', s.mode === 'LIVE');
-  $('#foot-mode').textContent = `mode ${s.mode} · ${s.my_email_set ? 'test inbox set' : 'MY_EMAIL missing'}`;
+  $('#foot-mode').textContent = s.readonly ? 'read-only demo · fictional data' : `mode ${s.mode} · ${s.my_email_set ? 'test inbox set' : 'MY_EMAIL missing'}`;
   $('#demo-banner').hidden = !s.demo;
   const chip = (ok, label) => `<span class="chip ${ok ? 'ok' : 'bad'}"><i></i>${label}</span>`;
-  $('#status-chips').innerHTML = [
-    chip(s.gemini_ready, 'Gemini'), chip(s.hunter_ready, `Hunter · ${s.hunter_used}/50 used`),
-    chip(s.gmail_ready, 'Gmail'), chip(s.my_email_set, `Mode ${s.mode}`)].join('');
-  $('#send-note').textContent = s.mode === 'TEST'
-    ? 'TEST mode: sends to your own inbox, subject starts with [TEST], and the intended recipient is shown in a banner.'
-    : 'LIVE mode: creates a Gmail draft with the real recipient. You open it and press send.';
+  $('#status-chips').innerHTML = (s.readonly
+    ? [chip(true, 'Read-only demo'), chip(true, 'Fictional data'), chip(true, `Mode ${s.mode}`)]
+    : [chip(s.gemini_ready, 'Gemini'), chip(s.hunter_ready, `Hunter · ${s.hunter_used}/50 used`),
+       chip(s.gmail_ready, 'Gmail'), chip(s.my_email_set, `Mode ${s.mode}`)]).join('');
+  $('#send-note').textContent = s.readonly
+    ? 'Demo: Send is disabled here. In the real app, TEST mode sends to your own inbox with a [TEST] subject.'
+    : s.mode === 'TEST'
+      ? 'TEST mode: sends to your own inbox, subject starts with [TEST], and the intended recipient is shown in a banner.'
+      : 'LIVE mode: creates a Gmail draft with the real recipient. You open it and press send.';
+  if (s.readonly) {
+    $('#run-btn').disabled = true;
+    $('#run-note').textContent = 'This hosted demo is read-only. Run the pipeline locally on real companies (see the README).';
+    $('#log').textContent = 'Demo mode: runs are disabled here. Browse the companies, open a Trace, and try Approve / Discard in Review.';
+  }
   const reviewed = Object.entries(s.drafts).filter(([k]) => !['pending_review', 'blocked'].includes(k)).reduce((a, [, n]) => a + n, 0);
   state.stats = { companies: s.companies, qualified: state.companies.filter((c) => c.passes).length, reviewed };
   paintStats(); paintHero();

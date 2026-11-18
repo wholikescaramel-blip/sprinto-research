@@ -1,0 +1,204 @@
+{
+ "domain": "tidalwork.example",
+ "origin": "icp_search",
+ "source_url": "https://tidalwork.example/",
+ "stages": [
+  {
+   "stage": "draft",
+   "status": "done",
+   "error": null
+  },
+  {
+   "stage": "extract",
+   "status": "done",
+   "error": null
+  },
+  {
+   "stage": "poc",
+   "status": "done",
+   "error": null
+  },
+  {
+   "stage": "qualify",
+   "status": "done",
+   "error": null
+  },
+  {
+   "stage": "scrape",
+   "status": "done",
+   "error": null
+  }
+ ],
+ "qualification": {
+  "domain": "tidalwork.example",
+  "decision": "GO_FLAGGED",
+  "score": 5.0,
+  "confidence": "medium",
+  "unknowns": [
+   "cert_status"
+  ],
+  "passes_threshold": true,
+  "rubric_version": 1,
+  "reasons": [
+   {
+    "text": "B2B SaaS confirmed",
+    "facts": [
+     {
+      "id": "F096a908",
+      "field": "is_b2b_saas",
+      "value": "true",
+      "snippet": "Request a demo for your clinic group.",
+      "source_url": "https://tidalwork.example/",
+      "fetched_at": "2026-11-18T13:24:11+00:00"
+     }
+    ]
+   },
+   {
+    "text": "Compliance trigger: Hiring for a GRC/security/compliance role",
+    "facts": [
+     {
+      "id": "F3d5bdaf",
+      "field": "grc_job",
+      "value": "Security & Compliance Manager",
+      "snippet": "Security & Compliance Manager",
+      "source_url": "https://tidalwork.example/careers",
+      "fetched_at": "2026-11-18T13:24:11+00:00"
+     }
+    ]
+   },
+   {
+    "text": "Headcount in ICP range: 140 employees",
+    "facts": [
+     {
+      "id": "F1f3bbf0",
+      "field": "headcount",
+      "value": "140 employees",
+      "snippet": "Our 140 employees support clinics in 12 countries.",
+      "source_url": "https://tidalwork.example/about",
+      "fetched_at": "2026-11-18T13:24:11+00:00"
+     }
+    ]
+   }
+  ]
+ },
+ "poc": {
+  "domain": "tidalwork.example",
+  "status": "ok",
+  "name": "Ana Ruiz",
+  "title": "Head of Compliance",
+  "email": "ana@tidalwork.example",
+  "email_status": "sourced",
+  "source": "hunter",
+  "confidence": 81,
+  "verification": null,
+  "role_type": "compliance_grc",
+  "reason": "Hunter: best role match (compliance_grc; confidence 81)",
+  "guessed_email": null
+ },
+ "facts": [
+  {
+   "id": "F6ba07c2",
+   "domain": "tidalwork.example",
+   "field": "company_name",
+   "value": "Tidalwork",
+   "source_url": "https://tidalwork.example/",
+   "snippet": "Tidalwork is scheduling software for clinics.",
+   "page_id": null,
+   "fetched_at": "2026-11-18T13:24:11+00:00",
+   "created_at": "2026-11-18T13:24:11+00:00",
+   "updated_at": "2026-11-18T13:24:11+00:00"
+  },
+  {
+   "id": "F3d5bdaf",
+   "domain": "tidalwork.example",
+   "field": "grc_job",
+   "value": "Security & Compliance Manager",
+   "source_url": "https://tidalwork.example/careers",
+   "snippet": "Security & Compliance Manager",
+   "page_id": null,
+   "fetched_at": "2026-11-18T13:24:11+00:00",
+   "created_at": "2026-11-18T13:24:11+00:00",
+   "updated_at": "2026-11-18T13:24:11+00:00"
+  },
+  {
+   "id": "F1f3bbf0",
+   "domain": "tidalwork.example",
+   "field": "headcount",
+   "value": "140 employees",
+   "source_url": "https://tidalwork.example/about",
+   "snippet": "Our 140 employees support clinics in 12 countries.",
+   "page_id": null,
+   "fetched_at": "2026-11-18T13:24:11+00:00",
+   "created_at": "2026-11-18T13:24:11+00:00",
+   "updated_at": "2026-11-18T13:24:11+00:00"
+  },
+  {
+   "id": "F096a908",
+   "domain": "tidalwork.example",
+   "field": "is_b2b_saas",
+   "value": "true",
+   "source_url": "https://tidalwork.example/",
+   "snippet": "Request a demo for your clinic group.",
+   "page_id": null,
+   "fetched_at": "2026-11-18T13:24:11+00:00",
+   "created_at": "2026-11-18T13:24:11+00:00",
+   "updated_at": "2026-11-18T13:24:11+00:00"
+  }
+ ],
+ "drafts": [
+  {
+   "id": 3,
+   "status": "blocked",
+   "subject": "Congrats on the Series C",
+   "body": "Hi Ana,\n\nCongrats on the Series C and the hiring push.\n\nIs audit prep slow?\n\nBest,\nKay Dee\nSprinto",
+   "rubric_version": 1,
+   "gmail_id": null,
+   "sent_mode": null,
+   "check": {
+    "passed": false,
+    "failures": [
+     "sentence 1 (hook): unsupported claim(s) [\"funding claim 'Series C'\"]"
+    ],
+    "warnings": []
+   },
+   "pain_points": [],
+   "sentences": [
+    {
+     "text": "Congrats on the Series C and the hiring push.",
+     "type": "hook",
+     "fact_ids": [
+      "F3d5bdaf"
+     ],
+     "facts": [
+      {
+       "id": "F3d5bdaf",
+       "field": "grc_job",
+       "value": "Security & Compliance Manager",
+       "snippet": "Security & Compliance Manager",
+       "source_url": "https://tidalwork.example/careers",
+       "fetched_at": "2026-11-18T13:24:11+00:00"
+      }
+     ]
+    },
+    {
+     "text": "Is audit prep slow?",
+     "type": "pain",
+     "fact_ids": [
+      "F3d5bdaf"
+     ],
+     "facts": [
+      {
+       "id": "F3d5bdaf",
+       "field": "grc_job",
+       "value": "Security & Compliance Manager",
+       "snippet": "Security & Compliance Manager",
+       "source_url": "https://tidalwork.example/careers",
+       "fetched_at": "2026-11-18T13:24:11+00:00"
+      }
+     ]
+    }
+   ],
+   "reviews": []
+  }
+ ]
+}

@@ -1,0 +1,109 @@
+[
+ {
+  "domain": "acmeflow.example",
+  "name": "Acmeflow",
+  "origin": "icp_search",
+  "decision": "GO_FLAGGED",
+  "score": 5.0,
+  "confidence": "medium",
+  "unknowns": [
+   "cert_status"
+  ],
+  "passes": true,
+  "top_reason": "Compliance trigger: SOC 2 audit in progress",
+  "poc": {
+   "name": "Priya Nair",
+   "title": "Head of Security",
+   "status": "ok",
+   "email_status": "sourced"
+  },
+  "draft_status": "pending_review",
+  "draft_id": 1,
+  "stages": {
+   "draft": "done",
+   "extract": "done",
+   "poc": "done",
+   "qualify": "done",
+   "scrape": "done"
+  },
+  "n_facts": 6
+ },
+ {
+  "domain": "northwind-labs.example",
+  "name": "Northwind Labs",
+  "origin": "icp_search",
+  "decision": "GO_FLAGGED",
+  "score": 6.0,
+  "confidence": "medium",
+  "unknowns": [
+   "cert_status"
+  ],
+  "passes": true,
+  "top_reason": "Compliance trigger: Enterprise/compliance-pressure signal",
+  "poc": {
+   "name": "Marcus Lee",
+   "title": "CTO",
+   "status": "ok",
+   "email_status": "verified"
+  },
+  "draft_status": "pending_review",
+  "draft_id": 2,
+  "stages": {
+   "draft": "done",
+   "extract": "done",
+   "poc": "done",
+   "qualify": "done",
+   "scrape": "done"
+  },
+  "n_facts": 5
+ },
+ {
+  "domain": "tidalwork.example",
+  "name": "Tidalwork",
+  "origin": "icp_search",
+  "decision": "GO_FLAGGED",
+  "score": 5.0,
+  "confidence": "medium",
+  "unknowns": [
+   "cert_status"
+  ],
+  "passes": true,
+  "top_reason": "Compliance trigger: Hiring for a GRC/security/compliance role",
+  "poc": {
+   "name": "Ana Ruiz",
+   "title": "Head of Compliance",
+   "status": "ok",
+   "email_status": "sourced"
+  },
+  "draft_status": "blocked",
+  "draft_id": 3,
+  "stages": {
+   "draft": "done",
+   "extract": "done",
+   "poc": "done",
+   "qualify": "done",
+   "scrape": "done"
+  },
+  "n_facts": 4
+ },
+ {
+  "domain": "globex-consumer.example",
+  "name": "Globex",
+  "origin": "icp_search",
+  "decision": "NO_GO",
+  "score": 0.0,
+  "confidence": "low",
+  "unknowns": [],
+  "passes": false,
+  "top_reason": "Not B2B SaaS per the company's own pages",
+  "poc": null,
+  "draft_status": null,
+  "draft_id": null,
+  "stages": {
+   "extract": "done",
+   "qualify": "done",
+   "scrape": "done"
+  },
+  "n_facts": 2
+ }
+]

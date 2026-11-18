@@ -1,0 +1,180 @@
+[
+ {
+  "id": 1,
+  "domain": "acmeflow.example",
+  "company": "Acmeflow",
+  "status": "pending_review",
+  "subject": "Your Head of GRC opening",
+  "body": "Hi Priya,\n\nSaw Acmeflow is hiring a Head of GRC.\n\nWith the SOC 2 Type II audit window opening, is evidence collection landing on your team?\n\nSprinto monitors your controls around the clock and, when something drifts, closes gaps, refreshes evidence and routes approvals.\n\nOpen to a quick chat this week?\n\nBest,\nKay Dee\nSprinto",
+  "check": {
+   "passed": true,
+   "failures": [],
+   "warnings": []
+  },
+  "score": 5.0,
+  "decision": "GO_FLAGGED",
+  "reasons": [
+   "B2B SaaS confirmed",
+   "Compliance trigger: SOC 2 audit in progress",
+   "Compliance trigger: Hiring for a GRC/security/compliance role",
+   "Compliance trigger: Enterprise/compliance-pressure signal"
+  ],
+  "poc": {
+   "domain": "acmeflow.example",
+   "status": "ok",
+   "name": "Priya Nair",
+   "title": "Head of Security",
+   "email": "priya@acmeflow.example",
+   "email_status": "sourced",
+   "source": "hunter",
+   "confidence": 92,
+   "verification": "valid",
+   "role_type": "security_head",
+   "reason": "Hunter: best role match (security_head; confidence 92)",
+   "guessed_email": null
+  },
+  "sentences": [
+   {
+    "text": "Saw Acmeflow is hiring a Head of GRC.",
+    "type": "hook",
+    "fact_ids": [
+     "F57df7b5"
+    ]
+   },
+   {
+    "text": "With the SOC 2 Type II audit window opening, is evidence collection landing on your team?",
+    "type": "pain",
+    "fact_ids": [
+     "Fab1fca0"
+    ]
+   },
+   {
+    "text": "Sprinto monitors your controls around the clock and, when something drifts, closes gaps, refreshes evidence and routes approvals.",
+    "type": "pitch",
+    "fact_ids": [
+     "S2"
+    ]
+   },
+   {
+    "text": "Open to a quick chat this week?",
+    "type": "cta",
+    "fact_ids": []
+   }
+  ]
+ },
+ {
+  "id": 2,
+  "domain": "northwind-labs.example",
+  "company": "Northwind Labs",
+  "status": "pending_review",
+  "subject": "Northwind's trust center",
+  "body": "Hi Marcus,\n\nNoticed Northwind Labs runs a public trust center.\n\nAre security questionnaires from larger buyers pulling engineers off product work?\n\nSprinto lets you launch a Trust Center and complete security questionnaires in minutes.\n\nWorth a short call?\n\nBest,\nKay Dee\nSprinto",
+  "check": {
+   "passed": true,
+   "failures": [],
+   "warnings": []
+  },
+  "score": 6.0,
+  "decision": "GO_FLAGGED",
+  "reasons": [
+   "B2B SaaS confirmed",
+   "Compliance trigger: Enterprise/compliance-pressure signal",
+   "Stage in ICP: Series B",
+   "EU/regulated signal: GDPR"
+  ],
+  "poc": {
+   "domain": "northwind-labs.example",
+   "status": "ok",
+   "name": "Marcus Lee",
+   "title": "CTO",
+   "email": "marcus@northwind-labs.example",
+   "email_status": "verified",
+   "source": "apollo_manual",
+   "confidence": null,
+   "verification": null,
+   "role_type": "cto_vp_eng",
+   "reason": "Manual Apollo lookup from config/manual_pocs.yaml",
+   "guessed_email": null
+  },
+  "sentences": [
+   {
+    "text": "Noticed Northwind Labs runs a public trust center.",
+    "type": "hook",
+    "fact_ids": [
+     "Fed13873"
+    ]
+   },
+   {
+    "text": "Are security questionnaires from larger buyers pulling engineers off product work?",
+    "type": "pain",
+    "fact_ids": [
+     "Fed13873"
+    ]
+   },
+   {
+    "text": "Sprinto lets you launch a Trust Center and complete security questionnaires in minutes.",
+    "type": "pitch",
+    "fact_ids": [
+     "S5"
+    ]
+   },
+   {
+    "text": "Worth a short call?",
+    "type": "cta",
+    "fact_ids": []
+   }
+  ]
+ },
+ {
+  "id": 3,
+  "domain": "tidalwork.example",
+  "company": "Tidalwork",
+  "status": "blocked",
+  "subject": "Congrats on the Series C",
+  "body": "Hi Ana,\n\nCongrats on the Series C and the hiring push.\n\nIs audit prep slow?\n\nBest,\nKay Dee\nSprinto",
+  "check": {
+   "passed": false,
+   "failures": [
+    "sentence 1 (hook): unsupported claim(s) [\"funding claim 'Series C'\"]"
+   ],
+   "warnings": []
+  },
+  "score": 5.0,
+  "decision": "GO_FLAGGED",
+  "reasons": [
+   "B2B SaaS confirmed",
+   "Compliance trigger: Hiring for a GRC/security/compliance role",
+   "Headcount in ICP range: 140 employees"
+  ],
+  "poc": {
+   "domain": "tidalwork.example",
+   "status": "ok",
+   "name": "Ana Ruiz",
+   "title": "Head of Compliance",
+   "email": "ana@tidalwork.example",
+   "email_status": "sourced",
+   "source": "hunter",
+   "confidence": 81,
+   "verification": null,
+   "role_type": "compliance_grc",
+   "reason": "Hunter: best role match (compliance_grc; confidence 81)",
+   "guessed_email": null
+  },
+  "sentences": [
+   {
+    "text": "Congrats on the Series C and the hiring push.",
+    "type": "hook",
+    "fact_ids": [
+     "F3d5bdaf"
+    ]
+   },
+   {
+    "text": "Is audit prep slow?",
+    "type": "pain",
+    "fact_ids": [
+     "F3d5bdaf"
+    ]
+   }
+  ]
+ }
+]
