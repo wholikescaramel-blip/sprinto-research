@@ -1,0 +1,17 @@
+# Only the static demo/ is served. Keep everything else (code, secrets, data) off Vercel's uploads.
+.env
+.env.*
+credentials.json
+token.json
+data
+.venv
+.pytest_cache
+src
+tests
+scripts
+web
+config
+docs
+pyproject.toml
+README.md
+.claude
