@@ -38,7 +38,7 @@ def dump(url: str, dest: Path, patch=None):
 def neutral_status(s: dict) -> dict:
     # nothing about this machine's keys, mail address or quotas goes public
     s.update(readonly=True, demo=True, my_email_set=False, gemini_ready=False, hunter_ready=False,
-             gmail_ready=False, hunter_used=0, run={"running": False, "stage": None, "found": 0,
+             mail_ready=False, hunter_used=0, run={"running": False, "stage": None, "found": 0,
                                                     "started": None, "finished": None})
     return s
 

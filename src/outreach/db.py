@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS counters(
 CREATE TABLE IF NOT EXISTS drafts(
   id INTEGER PRIMARY KEY AUTOINCREMENT, domain TEXT, subject TEXT, body TEXT,
   sentences TEXT, pain_points TEXT, greeting_name TEXT, rubric_version INTEGER,
-  status TEXT, check_result TEXT, poc TEXT, gmail_id TEXT, sent_mode TEXT,
+  status TEXT, check_result TEXT, poc TEXT, message_id TEXT, sent_mode TEXT,
   created_at TEXT, updated_at TEXT);
 CREATE TABLE IF NOT EXISTS reviews(
   id INTEGER PRIMARY KEY AUTOINCREMENT, draft_id INTEGER, action TEXT,
@@ -71,6 +71,11 @@ class DB:
         self.conn = sqlite3.connect(str(path))
         self.conn.row_factory = sqlite3.Row
         self.conn.executescript(SCHEMA)
+        try:  # older local databases (from the Gmail version) had drafts.gmail_id
+            self.conn.execute("ALTER TABLE drafts RENAME COLUMN gmail_id TO message_id")
+            self.conn.commit()
+        except sqlite3.OperationalError:
+            pass  # already renamed / fresh database
 
     # -- generic helpers
     def q(self, sql: str, args: Iterable[Any] = ()) -> list[sqlite3.Row]:

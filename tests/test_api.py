@@ -1,4 +1,4 @@
-"""UI backend: runs on a temp DB, never touches Gmail/Gemini."""
+"""UI backend: runs on a temp DB, never touches Resend/Gemini."""
 from __future__ import annotations
 
 import json
@@ -51,4 +51,4 @@ def test_review_validates_and_moves_draft(client):
 
 def test_send_is_blocked_until_approved(client):
     r = client.post("/api/drafts/1/send")
-    assert r.status_code == 400 and "approved" in r.json()["detail"]  # nothing reaches Gmail
+    assert r.status_code == 400 and "approved" in r.json()["detail"]  # nothing is emailed

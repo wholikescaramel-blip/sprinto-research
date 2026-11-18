@@ -26,32 +26,17 @@ class FakeLLM:
         return out if isinstance(out, schema) else schema.model_validate(out)
 
 
-class FakeGmail:
-    """Records which Gmail API methods get called."""
+class FakeResend:
+    """Stands in for api.resend.com: records every request; returns {"id": "re_123"} unless told to fail."""
 
-    def __init__(self):
-        self.calls = []
+    def __init__(self, status=200, body=None):
+        self.calls, self.status, self.body = [], status, body or {"id": "re_123"}
+        self.client = httpx.Client(transport=httpx.MockTransport(self._handle))
 
-    def users(self):
-        return self
-
-    def messages(self):
-        outer = self
-
-        class M:
-            def send(_, userId, body):
-                outer.calls.append(("messages.send", body))
-                return type("R", (), {"execute": lambda s: {"id": "msg123"}})()
-        return M()
-
-    def drafts(self):
-        outer = self
-
-        class D:
-            def create(_, userId, body):
-                outer.calls.append(("drafts.create", body))
-                return type("R", (), {"execute": lambda s: {"id": "draft456"}})()
-        return D()
+    def _handle(self, req: httpx.Request) -> httpx.Response:
+        import json
+        self.calls.append({"url": str(req.url), "headers": dict(req.headers), "json": json.loads(req.content)})
+        return httpx.Response(self.status, json=self.body)
 
 
 def site_client(pages: dict[str, str]) -> httpx.Client:

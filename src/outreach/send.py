@@ -1,45 +1,31 @@
-"""Gmail delivery. TEST: send to MY_EMAIL. LIVE: create a draft only - never auto-send."""
+"""Email delivery via Resend (https://resend.com/docs/api-reference/emails/send-email).
+
+TEST: send to MY_EMAIL only, subject prefixed [TEST], body starts with the intended recipient.
+LIVE: send to the real recipient. Only ever after a human approved that exact draft; never automatic.
+The public hosted app (PUBLIC_MODE=1) is forced to TEST: it can never email a third party.
+"""
 from __future__ import annotations
 
-import base64
-import json
-from email.message import EmailMessage
-from pathlib import Path
+import httpx
 
 from . import config
 from .db import DB
 from .models import CheckResult, Poc
 
-SCOPES = ["https://www.googleapis.com/auth/gmail.compose"]
+RESEND_URL = "https://api.resend.com/emails"
+DEFAULT_FROM = "Outreach <onboarding@resend.dev>"  # Resend's shared test sender
 
 
 class SendBlocked(Exception):
-    pass
+    """A safety gate said no. Nothing was sent."""
 
 
-def gmail_service():
-    """OAuth (installed-app flow). Token cached next to the credentials file."""
-    from google.auth.transport.requests import Request
-    from google.oauth2.credentials import Credentials
-    from google_auth_oauthlib.flow import InstalledAppFlow
-    from googleapiclient.discovery import build
+class SendError(Exception):
+    """Resend rejected or failed the request."""
 
-    cred_file = Path(config.env("GMAIL_CREDENTIALS_FILE", "credentials.json"))
-    if not cred_file.is_absolute():
-        cred_file = config.ROOT / cred_file
-    token_file = Path(config.env("GMAIL_TOKEN_FILE") or cred_file.with_name("token.json"))
-    creds = None
-    if token_file.exists():
-        creds = Credentials.from_authorized_user_file(str(token_file), SCOPES)
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            if not cred_file.exists():
-                raise SendBlocked(f"Gmail credentials file not found: {cred_file}")
-            creds = InstalledAppFlow.from_client_secrets_file(str(cred_file), SCOPES).run_local_server(port=0)
-        token_file.write_text(creds.to_json())
-    return build("gmail", "v1", credentials=creds)
+
+def public_mode() -> bool:
+    return config.env("PUBLIC_MODE") == "1"
 
 
 def check_sendable(draft, poc: Poc | None) -> None:
@@ -55,38 +41,46 @@ def check_sendable(draft, poc: Poc | None) -> None:
         raise SendBlocked("PoC email is unverified (or missing); a human must supply a verified address")
 
 
-def build_message(draft, poc: Poc, mode: str, my_email: str | None) -> EmailMessage:
-    msg = EmailMessage()
+def build_payload(draft, poc: Poc, mode: str, my_email: str | None, sender: str) -> dict:
     if mode == "TEST":
         if not my_email:
             raise SendBlocked("MY_EMAIL is not set")
-        msg["To"] = my_email
-        msg["Subject"] = f"[TEST] {draft['subject']}"
-        msg.set_content(f"Intended recipient: {poc.name} <{poc.email}>\n\n{draft['body']}")
-    else:
-        msg["To"] = poc.email
-        msg["Subject"] = draft["subject"]
-        msg.set_content(draft["body"])
-    return msg
+        return {"from": sender, "to": [my_email], "subject": f"[TEST] {draft['subject']}",
+                "text": f"Intended recipient: {poc.name} <{poc.email}>\n\n{draft['body']}"}
+    payload = {"from": sender, "to": [poc.email], "subject": draft["subject"], "text": draft["body"]}
+    if my_email:
+        payload["reply_to"] = [my_email]  # replies reach you, not the shared sender
+    return payload
 
 
-def deliver(db: DB, draft_id: int, service=None, mode: str | None = None) -> dict:
-    """TEST -> users.messages.send to MY_EMAIL. LIVE -> users.drafts.create (never messages.send)."""
+def deliver(db: DB, draft_id: int, client: httpx.Client | None = None, mode: str | None = None) -> dict:
     mode = (mode or config.send_mode()).upper()
+    if public_mode():
+        mode = "TEST"  # a public, password-less app must never be able to email strangers
     draft = db.get_draft(draft_id)
     if draft is None:
         raise SendBlocked(f"no draft {draft_id}")
-    poc = db.get_poc(draft["domain"])
-    poc_at_draft = Poc.model_validate_json(draft["poc"]) if draft["poc"] else poc
-    check_sendable(draft, poc_at_draft)
-    msg = build_message(draft, poc_at_draft, mode, config.env("MY_EMAIL"))
-    svc = service or gmail_service()
-    raw = base64.urlsafe_b64encode(msg.as_bytes()).decode()
-    if mode == "TEST":
-        resp = svc.users().messages().send(userId="me", body={"raw": raw}).execute()
-        status = "sent_test"
-    else:
-        resp = svc.users().drafts().create(userId="me", body={"message": {"raw": raw}}).execute()
-        status = "gmail_draft_created"
-    db.update_draft(draft_id, status=status, gmail_id=resp.get("id"), sent_mode=mode)
-    return {"mode": mode, "gmail_id": resp.get("id"), "status": status}
+    poc = Poc.model_validate_json(draft["poc"]) if draft["poc"] else db.get_poc(draft["domain"])
+    check_sendable(draft, poc)
+    key = config.env("RESEND_API_KEY")
+    if not key:
+        raise SendBlocked("RESEND_API_KEY is not set")
+    payload = build_payload(draft, poc, mode, config.env("MY_EMAIL"),
+                            config.env("MAIL_FROM", DEFAULT_FROM))
+    c = client or httpx.Client(timeout=20)
+    try:
+        r = c.post(RESEND_URL, json=payload, headers={
+            "Authorization": f"Bearer {key}",
+            "Idempotency-Key": f"outreach-draft-{draft_id}-{mode}"})  # a double click cannot double-send
+    except httpx.HTTPError as e:
+        raise SendError(f"could not reach Resend: {e}") from e
+    if r.status_code >= 300:
+        try:
+            msg = r.json().get("message") or r.text
+        except ValueError:
+            msg = r.text
+        raise SendError(f"Resend said {r.status_code}: {str(msg)[:300]}")
+    message_id = r.json().get("id")
+    status = "sent_test" if mode == "TEST" else "sent_live"
+    db.update_draft(draft_id, status=status, message_id=message_id, sent_mode=mode)
+    return {"mode": mode, "message_id": message_id, "status": status, "to": payload["to"]}

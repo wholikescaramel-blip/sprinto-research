@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from conftest import FakeGmail, FakeLLM, line_with, make_fetcher
+from conftest import FakeLLM, FakeResend, line_with, make_fetcher
 from outreach import config, news
 from outreach.checker import check_draft
 from outreach.db import DB
@@ -16,7 +16,7 @@ from outreach.models import (DiscoveredCompany, DraftOut, DraftSentence, Extract
 from outreach.pipeline import Services, qualify_company, research
 from outreach.poc import find_poc, guess_email
 from outreach.scraper import scrape_company
-from outreach.send import SendBlocked, check_sendable, deliver
+from outreach.send import SendBlocked, SendError, check_sendable, deliver
 
 ICP = config.icp()
 
@@ -143,16 +143,23 @@ def test_guessed_email_is_never_sent(db):
     draft = {"status": "approved", "check_result": '{"passed": true}'}
     with pytest.raises(SendBlocked, match="unverified"):
         check_sendable(draft, guessed)
-    svc = FakeGmail()
+    resend = FakeResend()
     did = db.save_draft(domain="x.io", subject="s", body="b", sentences="[]", pain_points="[]",
                         greeting_name="Priya", rubric_version=1, status="approved",
                         check_result='{"passed": true}', poc=guessed.model_dump_json())
     with pytest.raises(SendBlocked):
-        deliver(db, did, service=svc, mode="TEST")
-    assert svc.calls == []
+        deliver(db, did, client=resend.client, mode="TEST")
+    assert resend.calls == []
 
 
 # 6 ------------------------------------------------------------------
+@pytest.fixture
+def mail_env(monkeypatch):
+    monkeypatch.setenv("MY_EMAIL", "me@example.com")
+    monkeypatch.setenv("RESEND_API_KEY", "re_test_key")
+    monkeypatch.delenv("PUBLIC_MODE", raising=False)
+
+
 def _approved_draft(db):
     db.upsert_company("x.io")
     return db.save_draft(domain="x.io", subject="GRC hiring", body="Hi Priya,\n\nbody", sentences="[]",
@@ -161,32 +168,61 @@ def _approved_draft(db):
                          poc=_poc().model_dump_json())
 
 
-def test_live_mode_never_calls_messages_send(db, monkeypatch):
-    monkeypatch.setenv("MY_EMAIL", "me@example.com")
-    gm = FakeGmail()
-    r = deliver(db, _approved_draft(db), service=gm, mode="LIVE")
-    assert [c[0] for c in gm.calls] == ["drafts.create"]
-    assert r["status"] == "gmail_draft_created"
+def test_test_mode_sends_only_to_my_inbox_with_banner(db, mail_env):
+    resend = FakeResend()
+    r = deliver(db, _approved_draft(db), client=resend.client, mode="TEST")
+    (call,) = resend.calls
+    assert call["url"] == "https://api.resend.com/emails"
+    assert call["json"]["to"] == ["me@example.com"] and call["json"]["subject"].startswith("[TEST] ")
+    assert "Intended recipient: Priya Nair <priya@x.io>" in call["json"]["text"]
+    assert call["headers"]["authorization"] == "Bearer re_test_key"
+    assert r["status"] == "sent_test" and r["message_id"] == "re_123"
 
 
-def test_test_mode_sends_to_my_inbox_with_banner(db, monkeypatch):
-    import base64
-    import email
-    monkeypatch.setenv("MY_EMAIL", "me@example.com")
-    gm = FakeGmail()
-    deliver(db, _approved_draft(db), service=gm, mode="TEST")
-    assert [c[0] for c in gm.calls] == ["messages.send"]
-    msg = email.message_from_bytes(base64.urlsafe_b64decode(gm.calls[0][1]["raw"]))
-    assert msg["To"] == "me@example.com" and msg["Subject"].startswith("[TEST] ")
-    assert "Intended recipient: Priya Nair <priya@x.io>" in msg.get_payload(decode=True).decode()
+def test_live_mode_sends_the_approved_draft_to_the_real_recipient(db, mail_env):
+    resend = FakeResend()
+    did = _approved_draft(db)
+    r = deliver(db, did, client=resend.client, mode="LIVE")
+    (call,) = resend.calls
+    assert call["json"]["to"] == ["priya@x.io"] and call["json"]["reply_to"] == ["me@example.com"]
+    assert call["json"]["subject"] == "GRC hiring" and "[TEST]" not in call["json"]["text"]
+    assert call["headers"]["idempotency-key"] == f"outreach-draft-{did}-LIVE"  # double click cannot double-send
+    assert r["status"] == "sent_live" and db.get_draft(did)["status"] == "sent_live"
 
 
-def test_unapproved_or_failed_check_is_not_sent(db, monkeypatch):
-    monkeypatch.setenv("MY_EMAIL", "me@example.com")
+def test_public_hosted_app_is_forced_to_test_even_if_live_is_requested(db, mail_env, monkeypatch):
+    monkeypatch.setenv("PUBLIC_MODE", "1")
+    resend = FakeResend()
+    r = deliver(db, _approved_draft(db), client=resend.client, mode="LIVE")
+    assert resend.calls[0]["json"]["to"] == ["me@example.com"] and r["mode"] == "TEST"
+
+
+def test_unapproved_or_failed_check_is_not_sent(db, mail_env):
+    resend = FakeResend()
     did = _approved_draft(db)
     db.update_draft(did, check_result='{"passed": false, "failures": ["x"]}')
     with pytest.raises(SendBlocked, match="checker"):
-        deliver(db, did, service=FakeGmail(), mode="TEST")
+        deliver(db, did, client=resend.client, mode="TEST")
+    db.update_draft(did, check_result='{"passed": true}', status="pending_review")
+    with pytest.raises(SendBlocked, match="approved"):
+        deliver(db, did, client=resend.client, mode="LIVE")
+    assert resend.calls == []
+
+
+def test_resend_error_is_reported_and_the_draft_stays_unsent(db, mail_env):
+    resend = FakeResend(status=403, body={"message": "The example.com domain is not verified"})
+    did = _approved_draft(db)
+    with pytest.raises(SendError, match="not verified"):
+        deliver(db, did, client=resend.client, mode="LIVE")
+    assert db.get_draft(did)["status"] == "approved"
+
+
+def test_missing_resend_key_blocks_before_any_request(db, mail_env, monkeypatch):
+    monkeypatch.delenv("RESEND_API_KEY")
+    resend = FakeResend()
+    with pytest.raises(SendBlocked, match="RESEND_API_KEY"):
+        deliver(db, _approved_draft(db), client=resend.client, mode="TEST")
+    assert resend.calls == []
 
 
 # 7 ------------------------------------------------------------------

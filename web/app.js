@@ -128,12 +128,12 @@ async function loadStatus() {
   $('#status-chips').innerHTML = (s.readonly
     ? [chip(true, 'Read-only demo'), chip(true, 'Fictional data'), chip(true, `Mode ${s.mode}`)]
     : [chip(s.gemini_ready, 'Gemini'), chip(s.hunter_ready, `Hunter · ${s.hunter_used}/50 used`),
-       chip(s.gmail_ready, 'Gmail'), chip(s.my_email_set, `Mode ${s.mode}`)]).join('');
+       chip(s.mail_ready, 'Resend'), chip(s.my_email_set, `Mode ${s.mode}`)]).join('');
   $('#send-note').textContent = s.readonly
     ? 'Demo: Send is disabled here. In the real app, TEST mode sends to your own inbox with a [TEST] subject.'
     : s.mode === 'TEST'
       ? 'TEST mode: sends to your own inbox, subject starts with [TEST], and the intended recipient is shown in a banner.'
-      : 'LIVE mode: creates a Gmail draft with the real recipient. You open it and press send.';
+      : 'LIVE mode: sends to the real recipient through Resend, only for drafts you approved. Each send asks you to confirm.';
   if (s.readonly) {
     $('#run-btn').disabled = true;
     $('#run-note').textContent = 'This hosted demo is read-only. Run the pipeline locally on real companies (see the README).';
@@ -269,7 +269,7 @@ async function openTrace(domain) {
        <pre style="white-space:pre-wrap;font:14px var(--body);margin:10px 0">${esc(x.subject)}\n\n${esc(x.body)}</pre>
        ${x.pain_points.map((pp) => `<div class="fine"><b>Pain hypothesis:</b> ${esc(pp.text)} — ${esc(pp.rationale)}</div>${pp.facts.map(factHtml).join('')}`).join('')}
        ${x.sentences.map((s) => `<div style="margin-top:8px"><span class="tag">${esc(s.type)}</span> ${esc(s.text)}${s.facts.map(factHtml).join('')}</div>`).join('')}
-       ${x.gmail_id ? `<div class="fine">Delivered: ${esc(x.sent_mode)} · ${esc(x.gmail_id)}</div>` : ''}</div>`).join('') : '<div class="trace">No draft yet.</div>'}
+       ${x.message_id ? `<div class="fine">Delivered: ${esc(x.sent_mode)} · ${esc(x.message_id)}</div>` : ''}</div>`).join('') : '<div class="trace">No draft yet.</div>'}
     <div class="sec">Pipeline stages</div>
     <div class="trace">${d.stages.map((s) => `<span class="tag">${esc(s.stage)}: ${esc(s.status)}</span>`).join(' ') || '–'}</div>`;
   $('#veil').hidden = false;
@@ -334,7 +334,7 @@ function renderReview() {
   layoutStack(false);
   if (pending.length && !reduce) gsap.from('#stack .draft', { y: 80, opacity: 0, rotate: () => gsap.utils.random(-6, 6), stagger: 0.12, duration: 0.6, ease: 'back.out(1.6)', clearProps: 'rotate' });
   $('#approved').innerHTML = approved.length ? approved.map((d) =>
-    `<div class="item"><div><b>${esc(d.company)}</b><small>${esc((d.poc || {}).name || '')} · ${esc((d.poc || {}).email_status || '')}</small></div><button class="btn btn-ink" data-send="${d.id}">${state.status && state.status.mode === 'LIVE' ? 'Create draft' : 'Send test'}</button></div>`).join('')
+    `<div class="item"><div><b>${esc(d.company)}</b><small>${esc((d.poc || {}).name || '')} · ${esc((d.poc || {}).email_status || '')}</small></div><button class="btn btn-ink" data-send="${d.id}">${state.status && state.status.mode === 'LIVE' ? 'Send live' : 'Send test'}</button></div>`).join('')
     : '<p class="fine" style="margin-top:10px">Approved drafts show up here.</p>';
   $('#blocked-tray').hidden = blocked.length === 0;
   $('#blocked').innerHTML = blocked.map((d) => `<div class="item" style="display:block"><b>${esc(d.company)}</b><div class="fail-list">${(d.check.failures || []).map(esc).join('<br>')}</div></div>`).join('');
@@ -388,11 +388,11 @@ $('#edit-save').addEventListener('click', async () => { const t = $('#edit-text'
 document.addEventListener('click', async (e) => {
   const b = e.target.closest('[data-send]'); if (!b) return;
   const live = state.status && state.status.mode === 'LIVE';
-  if (!confirm(live ? 'Create a Gmail draft addressed to the real recipient? You will press send yourself.' : 'Send this as a TEST email to your own inbox?')) return;
+  if (!confirm(live ? 'LIVE: this sends a real email to the recipient now. Send it?' : 'Send this as a TEST email to your own inbox?')) return;
   b.disabled = true;
   try {
     const r = await api(`/api/drafts/${b.dataset.send}/send`, { method: 'POST' });
-    toast(live ? 'Gmail draft created.' : 'Test email sent to your inbox.');
+    toast(live ? 'Email sent to the recipient.' : 'Test email sent to your inbox.');
     if (!reduce) gsap.to(b.closest('.item'), { x: 80, opacity: 0, duration: 0.4 });
     await loadQueue(); loadStatus();
   } catch (err) { toast(err.message, true); b.disabled = false; }

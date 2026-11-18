@@ -1,5 +1,5 @@
 """Local web API + UI host. Run:  uvicorn outreach.api:app --port 8000
-Everything stays on this machine: keys, SQLite, Gmail token. Nothing here is deployed anywhere."""
+Local by default: keys, SQLite and the Resend key stay on this machine."""
 from __future__ import annotations
 
 import json
@@ -19,7 +19,7 @@ from .feedback import aggregate, record_outcome
 from .models import CheckResult
 from .pipeline import Services, run_pipeline
 from .review import REASON_TAGS, record_review
-from .send import SendBlocked, deliver
+from .send import SendBlocked, SendError, deliver
 
 WEB = Path(__file__).resolve().parents[2] / "web"
 app = FastAPI(title="Sprinto outreach")
@@ -46,7 +46,7 @@ def status():
         "gemini_ready": bool(config.env("GEMINI_API_KEY") and config.env("GEMINI_MODEL")),
         "hunter_ready": bool(config.env("HUNTER_API_KEY")),
         "hunter_used": db.counter("hunter", period),
-        "gmail_ready": (config.ROOT / "token.json").exists(),
+        "mail_ready": bool(config.env("RESEND_API_KEY")),
         "demo": "demo" in config.db_path().name,
         "companies": db.one("SELECT COUNT(*) n FROM companies")["n"],
         "qualifications": q,
@@ -106,7 +106,7 @@ def company(domain: str):
     for d in db.drafts_for(domain):
         drafts.append({
             "id": d["id"], "status": d["status"], "subject": d["subject"], "body": d["body"],
-            "rubric_version": d["rubric_version"], "gmail_id": d["gmail_id"], "sent_mode": d["sent_mode"],
+            "rubric_version": d["rubric_version"], "message_id": d["message_id"], "sent_mode": d["sent_mode"],
             "check": json.loads(d["check_result"] or "{}"),
             "pain_points": [{**p, "facts": [_fact(db, domain, f) for f in p.get("fact_ids", [])]}
                             for p in json.loads(d["pain_points"] or "[]")],
@@ -230,8 +230,10 @@ def send(draft_id: int):
         return deliver(get_db(), draft_id)
     except SendBlocked as e:
         raise HTTPException(400, f"Blocked: {e}")
+    except SendError as e:
+        raise HTTPException(502, str(e)[:300])
     except Exception as e:
-        raise HTTPException(502, f"Gmail error: {str(e)[:300]}")
+        raise HTTPException(502, f"Email error: {str(e)[:300]}")
 
 
 class OutcomeReq(BaseModel):

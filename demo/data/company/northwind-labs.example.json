@@ -49,7 +49,7 @@
       "value": "true",
       "snippet": "Per-seat pricing for finance teams. Book a demo.",
       "source_url": "https://northwind-labs.example/",
-      "fetched_at": "2026-11-18T13:24:11+00:00"
+      "fetched_at": "2026-11-18T14:18:19+00:00"
      }
     ]
    },
@@ -62,7 +62,7 @@
       "value": "trust center",
       "snippet": "Visit our trust center for our latest security documents.",
       "source_url": "https://northwind-labs.example/trust",
-      "fetched_at": "2026-11-18T13:24:11+00:00"
+      "fetched_at": "2026-11-18T14:18:19+00:00"
      }
     ]
    },
@@ -75,7 +75,7 @@
       "value": "Series B",
       "snippet": "Northwind Labs raised a Series B round led by Fjord Capital.",
       "source_url": "https://northwind-labs.example/about",
-      "fetched_at": "2026-11-18T13:24:11+00:00"
+      "fetched_at": "2026-11-18T14:18:19+00:00"
      }
     ]
    },
@@ -88,7 +88,7 @@
       "value": "GDPR",
       "snippet": "We process personal data in line with the GDPR.",
       "source_url": "https://northwind-labs.example/privacy",
-      "fetched_at": "2026-11-18T13:24:11+00:00"
+      "fetched_at": "2026-11-18T14:18:19+00:00"
      }
     ]
    }
@@ -117,9 +117,9 @@
    "source_url": "https://northwind-labs.example/",
    "snippet": "Northwind Labs builds analytics software for finance teams.",
    "page_id": null,
-   "fetched_at": "2026-11-18T13:24:11+00:00",
-   "created_at": "2026-11-18T13:24:11+00:00",
-   "updated_at": "2026-11-18T13:24:11+00:00"
+   "fetched_at": "2026-11-18T14:18:19+00:00",
+   "created_at": "2026-11-18T14:18:19+00:00",
+   "updated_at": "2026-11-18T14:18:19+00:00"
   },
   {
    "id": "Fed13873",
@@ -129,9 +129,9 @@
    "source_url": "https://northwind-labs.example/trust",
    "snippet": "Visit our trust center for our latest security documents.",
    "page_id": null,
-   "fetched_at": "2026-11-18T13:24:11+00:00",
-   "created_at": "2026-11-18T13:24:11+00:00",
-   "updated_at": "2026-11-18T13:24:11+00:00"
+   "fetched_at": "2026-11-18T14:18:19+00:00",
+   "created_at": "2026-11-18T14:18:19+00:00",
+   "updated_at": "2026-11-18T14:18:19+00:00"
   },
   {
    "id": "F0c74e88",
@@ -141,9 +141,9 @@
    "source_url": "https://northwind-labs.example/privacy",
    "snippet": "We process personal data in line with the GDPR.",
    "page_id": null,
-   "fetched_at": "2026-11-18T13:24:11+00:00",
-   "created_at": "2026-11-18T13:24:11+00:00",
-   "updated_at": "2026-11-18T13:24:11+00:00"
+   "fetched_at": "2026-11-18T14:18:19+00:00",
+   "created_at": "2026-11-18T14:18:19+00:00",
+   "updated_at": "2026-11-18T14:18:19+00:00"
   },
   {
    "id": "Fdab1459",
@@ -153,9 +153,9 @@
    "source_url": "https://northwind-labs.example/about",
    "snippet": "Northwind Labs raised a Series B round led by Fjord Capital.",
    "page_id": null,
-   "fetched_at": "2026-11-18T13:24:11+00:00",
-   "created_at": "2026-11-18T13:24:11+00:00",
-   "updated_at": "2026-11-18T13:24:11+00:00"
+   "fetched_at": "2026-11-18T14:18:19+00:00",
+   "created_at": "2026-11-18T14:18:19+00:00",
+   "updated_at": "2026-11-18T14:18:19+00:00"
   },
   {
    "id": "Ffd68e8c",
@@ -165,9 +165,9 @@
    "source_url": "https://northwind-labs.example/",
    "snippet": "Per-seat pricing for finance teams. Book a demo.",
    "page_id": null,
-   "fetched_at": "2026-11-18T13:24:11+00:00",
-   "created_at": "2026-11-18T13:24:11+00:00",
-   "updated_at": "2026-11-18T13:24:11+00:00"
+   "fetched_at": "2026-11-18T14:18:19+00:00",
+   "created_at": "2026-11-18T14:18:19+00:00",
+   "updated_at": "2026-11-18T14:18:19+00:00"
   }
  ],
  "drafts": [
@@ -177,7 +177,7 @@
    "subject": "Northwind's trust center",
    "body": "Hi Marcus,\n\nNoticed Northwind Labs runs a public trust center.\n\nAre security questionnaires from larger buyers pulling engineers off product work?\n\nSprinto lets you launch a Trust Center and complete security questionnaires in minutes.\n\nWorth a short call?\n\nBest,\nKay Dee\nSprinto",
    "rubric_version": 1,
-   "gmail_id": null,
+   "message_id": null,
    "sent_mode": null,
    "check": {
     "passed": true,
@@ -199,7 +199,7 @@
        "value": "trust center",
        "snippet": "Visit our trust center for our latest security documents.",
        "source_url": "https://northwind-labs.example/trust",
-       "fetched_at": "2026-11-18T13:24:11+00:00"
+       "fetched_at": "2026-11-18T14:18:19+00:00"
       }
      ]
     },
@@ -216,7 +216,7 @@
        "value": "trust center",
        "snippet": "Visit our trust center for our latest security documents.",
        "source_url": "https://northwind-labs.example/trust",
-       "fetched_at": "2026-11-18T13:24:11+00:00"
+       "fetched_at": "2026-11-18T14:18:19+00:00"
       }
      ]
     },

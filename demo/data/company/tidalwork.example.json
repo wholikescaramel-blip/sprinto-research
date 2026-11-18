@@ -49,7 +49,7 @@
       "value": "true",
       "snippet": "Request a demo for your clinic group.",
       "source_url": "https://tidalwork.example/",
-      "fetched_at": "2026-11-18T13:24:11+00:00"
+      "fetched_at": "2026-11-18T14:18:19+00:00"
      }
     ]
    },
@@ -62,7 +62,7 @@
       "value": "Security & Compliance Manager",
       "snippet": "Security & Compliance Manager",
       "source_url": "https://tidalwork.example/careers",
-      "fetched_at": "2026-11-18T13:24:11+00:00"
+      "fetched_at": "2026-11-18T14:18:19+00:00"
      }
     ]
    },
@@ -75,7 +75,7 @@
       "value": "140 employees",
       "snippet": "Our 140 employees support clinics in 12 countries.",
       "source_url": "https://tidalwork.example/about",
-      "fetched_at": "2026-11-18T13:24:11+00:00"
+      "fetched_at": "2026-11-18T14:18:19+00:00"
      }
     ]
    }
@@ -104,9 +104,9 @@
    "source_url": "https://tidalwork.example/",
    "snippet": "Tidalwork is scheduling software for clinics.",
    "page_id": null,
-   "fetched_at": "2026-11-18T13:24:11+00:00",
-   "created_at": "2026-11-18T13:24:11+00:00",
-   "updated_at": "2026-11-18T13:24:11+00:00"
+   "fetched_at": "2026-11-18T14:18:19+00:00",
+   "created_at": "2026-11-18T14:18:19+00:00",
+   "updated_at": "2026-11-18T14:18:19+00:00"
   },
   {
    "id": "F3d5bdaf",
@@ -116,9 +116,9 @@
    "source_url": "https://tidalwork.example/careers",
    "snippet": "Security & Compliance Manager",
    "page_id": null,
-   "fetched_at": "2026-11-18T13:24:11+00:00",
-   "created_at": "2026-11-18T13:24:11+00:00",
-   "updated_at": "2026-11-18T13:24:11+00:00"
+   "fetched_at": "2026-11-18T14:18:19+00:00",
+   "created_at": "2026-11-18T14:18:19+00:00",
+   "updated_at": "2026-11-18T14:18:19+00:00"
   },
   {
    "id": "F1f3bbf0",
@@ -128,9 +128,9 @@
    "source_url": "https://tidalwork.example/about",
    "snippet": "Our 140 employees support clinics in 12 countries.",
    "page_id": null,
-   "fetched_at": "2026-11-18T13:24:11+00:00",
-   "created_at": "2026-11-18T13:24:11+00:00",
-   "updated_at": "2026-11-18T13:24:11+00:00"
+   "fetched_at": "2026-11-18T14:18:19+00:00",
+   "created_at": "2026-11-18T14:18:19+00:00",
+   "updated_at": "2026-11-18T14:18:19+00:00"
   },
   {
    "id": "F096a908",
@@ -140,9 +140,9 @@
    "source_url": "https://tidalwork.example/",
    "snippet": "Request a demo for your clinic group.",
    "page_id": null,
-   "fetched_at": "2026-11-18T13:24:11+00:00",
-   "created_at": "2026-11-18T13:24:11+00:00",
-   "updated_at": "2026-11-18T13:24:11+00:00"
+   "fetched_at": "2026-11-18T14:18:19+00:00",
+   "created_at": "2026-11-18T14:18:19+00:00",
+   "updated_at": "2026-11-18T14:18:19+00:00"
   }
  ],
  "drafts": [
@@ -152,7 +152,7 @@
    "subject": "Congrats on the Series C",
    "body": "Hi Ana,\n\nCongrats on the Series C and the hiring push.\n\nIs audit prep slow?\n\nBest,\nKay Dee\nSprinto",
    "rubric_version": 1,
-   "gmail_id": null,
+   "message_id": null,
    "sent_mode": null,
    "check": {
     "passed": false,
@@ -176,7 +176,7 @@
        "value": "Security & Compliance Manager",
        "snippet": "Security & Compliance Manager",
        "source_url": "https://tidalwork.example/careers",
-       "fetched_at": "2026-11-18T13:24:11+00:00"
+       "fetched_at": "2026-11-18T14:18:19+00:00"
       }
      ]
     },
@@ -193,7 +193,7 @@
        "value": "Security & Compliance Manager",
        "snippet": "Security & Compliance Manager",
        "source_url": "https://tidalwork.example/careers",
-       "fetched_at": "2026-11-18T13:24:11+00:00"
+       "fetched_at": "2026-11-18T14:18:19+00:00"
       }
      ]
     }

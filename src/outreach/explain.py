@@ -74,6 +74,6 @@ def explain(db: DB, domain: str) -> str:
             L += _fact_lines(db, domain, s["fact_ids"], "        ")
         for r in db.q("SELECT * FROM reviews WHERE draft_id=?", (d["id"],)):
             L.append(f"    review: {r['action']} label={r['label']} tag={r['reason_tag']} note={r['note']!r}")
-        if d["gmail_id"]:
-            L.append(f"    delivered: mode={d['sent_mode']} gmail_id={d['gmail_id']}")
+        if d["message_id"]:
+            L.append(f"    delivered: mode={d['sent_mode']} message_id={d['message_id']}")
     return "\n".join(L)

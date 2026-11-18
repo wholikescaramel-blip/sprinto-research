@@ -1,6 +1,6 @@
 # Sprinto cold-outreach pipeline
 
-Domains (or ICP discovery) -> scrape -> facts -> Go/No-Go -> decision-maker -> Gemini draft -> claim checker -> human review -> Gmail.
+Domains (or ICP discovery) -> scrape -> facts -> Go/No-Go -> decision-maker -> Gemini draft -> claim checker -> human review -> Resend (email API).
 Every stage reads and writes SQLite (`data/outreach.db`), so any stage can be re-run alone.
 
 ## Rule that overrides everything: never hallucinate
@@ -16,7 +16,7 @@ cd outreach
 python -m venv .venv ; .\.venv\Scripts\python -m pip install -e .
 copy .env.example .env      # then fill it in
 ```
-`.env`: `GEMINI_API_KEY`, `GEMINI_MODEL`, `HUNTER_API_KEY`, `MY_EMAIL`, `SEND_MODE` (TEST default), `GMAIL_CREDENTIALS_FILE`.
+`.env`: `GEMINI_API_KEY`, `GEMINI_MODEL`, `HUNTER_API_KEY`, `MY_EMAIL`, `SEND_MODE` (TEST default), `RESEND_API_KEY`, `MAIL_FROM`.
 `GEMINI_MODEL` is read from the env, never hardcoded. `.env.example` suggests `gemini-3.6-flash` (the latest "Stable" Flash on Google's models page on 2026-11-04). Verify before use.
 
 ## Things only you can provide (placeholders, nothing invented)
@@ -24,7 +24,7 @@ copy .env.example .env      # then fill it in
 - `config/icp.yaml` -> `discovery.rss_feeds` / `directory_pages`: empty until you add URLs.
 - `config/manual_pocs.yaml`: Apollo lookups (`domain -> name/title/email/source`).
 - `config/pain_points.yaml`: seeded with plausible entries; edit freely.
-- Gmail OAuth `credentials.json` (scope `gmail.compose`); first `send` opens a browser consent once.
+- A Resend API key (`RESEND_API_KEY`). `MAIL_FROM` defaults to Resend's shared test sender `onboarding@resend.dev`, which (per Resend's sandbox rules; confirm in your dashboard) can only deliver to your own Resend account email, so set `MY_EMAIL` to that address for TEST mode. To email real prospects you must verify a sending domain in Resend and set `MAIL_FROM` to an address on it.
 
 ## Commands
 ```
@@ -33,7 +33,7 @@ outreach run [--domains file] [--discover] [--limit N] [--min-companies 10]   # 
 outreach discover | research <d> | qualify <d> | poc <d> | draft <d>
 outreach review                  # approve / edit / discard + good|bad + reason tag
 outreach send <draft_id>         # TEST: sends to MY_EMAIL with [TEST] + "Intended recipient" banner
-                                 # LIVE: creates a Gmail DRAFT only (never messages.send)
+                                 # LIVE: sends to the real recipient, only for a draft a human approved (idempotent: a double click cannot double-send)
 outreach explain <domain>        # why company, why person, why email, with facts + source URLs
 outreach propose-rubric          # Gemini proposes rule changes -> config/rubric_proposals/
 outreach approve-rubric <file>   # approve each change -> rubric_vN+1.yaml (hard gates never touched)
@@ -57,10 +57,10 @@ Google Search grounding is a paid-tier feature beyond a small free quota. Check 
 - Scraper honors robots.txt, uses an honest User-Agent, waits 1.5 s per host, never touches LinkedIn, and uses Google News RSS (not Google HTML).
 
 ## Tests
-`.\.venv\Scripts\python -m pytest` : 35 tests, fixtures only (saved HTML/RSS, fake Gemini, fake Gmail); no network or paid APIs. Covers the nine anti-hallucination cases, qualification gates, review validation, rubric-loop boundaries and a full pipeline run to a `[TEST]` email.
+`.\.venv\Scripts\python -m pytest` : 49 tests, fixtures only (saved HTML/RSS, fake Gemini, fake Resend); no network or paid APIs. Covers the nine anti-hallucination cases, qualification gates, review validation, rubric-loop boundaries and a full pipeline run to a `[TEST]` email.
 
 ## Not verified / next
-- Not run against live Gemini, Hunter or Gmail yet (needs your keys). The Gemini structured-output call (`llm.py`) and Gmail OAuth (`send.py`) are written to the official SDK shapes but untested live.
+- Gemini, Hunter and Resend are written to their documented API shapes and tested offline. Gemini and Hunter passed a live smoke test; Resend has not been sent to yet (needs your key).
 - Hunter response shape was checked against Hunter's docs (2026-11-04).
 - Streamlit review page (CLI review only).
 - Edited drafts are not re-run through the claim checker; the human is accountable for edits.
@@ -74,10 +74,10 @@ Google Search grounding is a paid-tier feature beyond a small free quota. Check 
 .\.venv\Scripts\python scripts\serve.py --demo     # UI on the demo data (shows a DEMO banner)
 ```
 Minimal + glassmorphism: a split hero (white space and one gradient sphere on the left, floating frosted-glass data cards on the right, filled from live API data) over a blue/violet/pink gradient with soft blurred blobs. Palette tokens live at the top of `web/styles.css` (`--glass-blue/violet/pink/teal`), so re-colouring (e.g. to Sprinto's plum/orange) is a one-block change. Accessibility: two glass tiers. True 15% glass with white text is used only for chrome and large numerals; every reading surface (company cards, email drafts, trace drawer, forms) uses a denser frosted fill with dark text. `prefers-reduced-transparency` and `prefers-reduced-motion` are honoured, and focus rings are visible. GSAP drives the scroll progress bar, hero entrance, panel/card staggers, the review card swap, the trace drawer and count-ups. Sections: Run (start/monitor, live log), Companies (score, decision, unknowns, trace), Review (card stack: approve/edit/discard/skip + label + reason tag; approved drafts go to a Send tray), Numbers.
-It runs locally on purpose: keys, SQLite and the Gmail token stay on this machine, so it is not deployed to Vercel. The Send button obeys `SEND_MODE` (TEST = your own inbox; LIVE = Gmail draft only).
+It runs locally on purpose: keys and SQLite stay on this machine. The Send button obeys `SEND_MODE` (TEST = your own inbox; LIVE = a real send to the recipient after you confirm). A public hosted app is forced to TEST so it can never email a stranger.
 
 ## Hosted demo (Vercel)
-The real app stays local (keys, SQLite, Gmail token). For sharing, `python scripts/build_demo_site.py` builds a static, read-only copy into `demo/`: the same UI reading JSON snapshots of the FICTIONAL demo data, with Run and Send disabled and Approve/Discard applied in the browser only. No keys, database or Python runs on Vercel; deploy the `demo/` folder (Vercel project root directory = `demo`). Rebuild and push to update it.
+The real app stays local (keys, SQLite). For sharing, `python scripts/build_demo_site.py` builds a static, read-only copy into `demo/`: the same UI reading JSON snapshots of the FICTIONAL demo data, with Run and Send disabled and Approve/Discard applied in the browser only. No keys, database or Python runs on Vercel; deploy the `demo/` folder (Vercel project root directory = `demo`). Rebuild and push to update it.
 
 ## Sprinto claims are chosen per prospect
 `config/sprinto_facts.yaml` has a `use_when` hint per claim. The drafter picks the one claim that fits the prospect's verified facts (e.g. trust-center claim for a company with enterprise signals); the checker still rejects any Sprinto statement outside the list.

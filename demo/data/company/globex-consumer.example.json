@@ -37,7 +37,7 @@
       "value": "false",
       "snippet": "Download our free app for your household.",
       "source_url": "https://globex-consumer.example/",
-      "fetched_at": "2026-11-18T13:24:11+00:00"
+      "fetched_at": "2026-11-18T14:18:19+00:00"
      }
     ]
    }
@@ -53,9 +53,9 @@
    "source_url": "https://globex-consumer.example/",
    "snippet": "Globex makes budgeting apps for families.",
    "page_id": null,
-   "fetched_at": "2026-11-18T13:24:11+00:00",
-   "created_at": "2026-11-18T13:24:11+00:00",
-   "updated_at": "2026-11-18T13:24:11+00:00"
+   "fetched_at": "2026-11-18T14:18:19+00:00",
+   "created_at": "2026-11-18T14:18:19+00:00",
+   "updated_at": "2026-11-18T14:18:19+00:00"
   },
   {
    "id": "F02cba8a",
@@ -65,9 +65,9 @@
    "source_url": "https://globex-consumer.example/",
    "snippet": "Download our free app for your household.",
    "page_id": null,
-   "fetched_at": "2026-11-18T13:24:11+00:00",
-   "created_at": "2026-11-18T13:24:11+00:00",
-   "updated_at": "2026-11-18T13:24:11+00:00"
+   "fetched_at": "2026-11-18T14:18:19+00:00",
+   "created_at": "2026-11-18T14:18:19+00:00",
+   "updated_at": "2026-11-18T14:18:19+00:00"
   }
  ],
  "drafts": []

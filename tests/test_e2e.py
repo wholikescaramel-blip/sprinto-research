@@ -1,11 +1,9 @@
-"""Whole pipeline on recorded fixtures with fake Gemini/Gmail: scrape -> ... -> TEST email -> explain."""
+"""Whole pipeline on recorded fixtures with fake Gemini/Resend: scrape -> ... -> TEST email -> explain."""
 from __future__ import annotations
 
-import base64
-import email
 import json
 
-from conftest import EMPTY_RSS, FakeGmail, FakeLLM, line_with, make_fetcher
+from conftest import EMPTY_RSS, FakeResend, FakeLLM, line_with, make_fetcher
 from outreach import config
 from outreach.explain import explain
 from outreach.models import (DraftOut, DraftSentence, ExtractionOut, FieldOut, PainPick, PainPicksOut,
@@ -50,6 +48,7 @@ def make_llm(job_id_holder):
 
 def test_full_pipeline_to_test_email(db, monkeypatch):
     monkeypatch.setenv("MY_EMAIL", "me@example.com")
+    monkeypatch.setenv("RESEND_API_KEY", "re_test_key")
     monkeypatch.setattr(config, "manual_pocs", lambda: {
         "acmeflow.io": {"name": "Priya Nair", "title": "Head of Security", "email": "priya@acmeflow.io",
                         "source": "apollo_manual"}})
@@ -76,12 +75,12 @@ def test_full_pipeline_to_test_email(db, monkeypatch):
     assert d["status"] == "pending_review", d["check_result"]
 
     record_review(db, d["id"], "approve", "good", "other", "looks right")
-    gm = FakeGmail()
-    r = deliver(db, d["id"], service=gm, mode="TEST")
+    resend = FakeResend()
+    r = deliver(db, d["id"], client=resend.client, mode="TEST")
     assert r["status"] == "sent_test"
-    msg = email.message_from_bytes(base64.urlsafe_b64decode(gm.calls[0][1]["raw"]))
-    body = msg.get_payload(decode=True).decode()
-    assert msg["To"] == "me@example.com" and "Intended recipient: Priya Nair <priya@acmeflow.io>" in body
+    sent = resend.calls[0]["json"]
+    body = sent["text"]
+    assert sent["to"] == ["me@example.com"] and "Intended recipient: Priya Nair <priya@acmeflow.io>" in body
     assert "Hi Priya," in body and "Head of GRC" in body
 
     text = explain(db, "acmeflow.io")

@@ -110,12 +110,12 @@ def review():
 
 @app.command()
 def send(draft_id: int):
-    """TEST: send to MY_EMAIL. LIVE: create a Gmail draft. Respects SEND_MODE."""
-    from .send import SendBlocked, deliver
+    """Send the approved draft via Resend. TEST: to MY_EMAIL. LIVE: to the real recipient. Respects SEND_MODE."""
+    from .send import SendBlocked, SendError, deliver
     try:
         r = deliver(DB(config.db_path()), draft_id)
-    except SendBlocked as e:
-        typer.secho(f"blocked: {e}", fg="red")
+    except (SendBlocked, SendError) as e:
+        typer.secho(f"not sent: {e}", fg="red")
         raise typer.Exit(1)
     typer.echo(r)
 
