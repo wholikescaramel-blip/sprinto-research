@@ -127,11 +127,16 @@ async function loadStatus() {
   const chip = (ok, label) => `<span class="chip ${ok ? 'ok' : 'bad'}"><i></i>${label}</span>`;
   $('#status-chips').innerHTML = (s.readonly
     ? [chip(true, 'Read-only demo'), chip(true, 'Fictional data'), chip(true, `Mode ${s.mode}`)]
-    : [chip(s.gemini_ready, 'Gemini'), chip(s.hunter_ready, `Hunter · ${s.hunter_used}/50 used`),
-       chip(s.mail_ready, 'Resend'), chip(s.my_email_set, `Mode ${s.mode}`)]).join('');
+    : s.hosted
+      ? [chip(true, 'Live app'), chip(s.gemini_ready, 'Gemini'), chip(s.hunter_ready, `Hunter · ${s.hunter_used}/50 used`),
+         chip(true, 'Shared database'), chip(true, 'Test sends only')]
+      : [chip(s.gemini_ready, 'Gemini'), chip(s.hunter_ready, `Hunter · ${s.hunter_used}/50 used`),
+         chip(s.mail_ready, 'Resend'), chip(s.my_email_set, `Mode ${s.mode}`)]).join('');
   $('#send-note').textContent = s.readonly
     ? 'Demo: Send is disabled here. In the real app, TEST mode sends to your own inbox with a [TEST] subject.'
-    : s.mode === 'TEST'
+    : s.hosted
+      ? 'Public app: it can only send a [TEST] copy to the owner\'s inbox. Copy the email or download it to send it yourself. Contact addresses are masked here.'
+      : s.mode === 'TEST'
       ? 'TEST mode: sends to your own inbox, subject starts with [TEST], and the intended recipient is shown in a banner.'
       : 'LIVE mode: sends to the real recipient through Resend, only for drafts you approved. Each send asks you to confirm.';
   if (s.readonly) {
@@ -177,12 +182,59 @@ function paintStats() {
 /* ---------------------------------------------------------------- run */
 $('#run-btn').addEventListener('click', async () => {
   const body = { inputs: $('#inputs').value, min_companies: +$('#min').value || 10, limit: $('#limit').value ? +$('#limit').value : null };
+  if (state.status && state.status.hosted) return runHosted(body);
   try {
     await api('/api/run', { method: 'POST', body });
     $('#log').textContent = 'Starting…';
     startPolling();
   } catch (e) { toast(e.message, true); }
 });
+
+/* Hosted app: serverless functions cannot run for minutes, so THIS page drives the run one company at a time.
+   Each request is one step (discover -> research -> draft) and stays well under a function's time limit. */
+async function runHosted(body) {
+  const logEl = $('#log');
+  const log = (m) => { logEl.textContent += (logEl.textContent ? '\n' : '') + m; logEl.scrollTop = logEl.scrollHeight; };
+  const HOSTED_MAX = 8;                                   // keep a public run small
+  const cap = Math.min(body.limit || HOSTED_MAX, HOSTED_MAX);
+  logEl.textContent = ''; $('#run-btn').disabled = true; $('#run-stage').textContent = 'running'; $('#run-found').textContent = '';
+  const failures = [];
+  try {
+    setStage('discover'); log('Looking for companies…');
+    let companies = [], qi = 0, calls = 0;
+    const hasInput = body.inputs.trim().length > 0;
+    do {
+      const r = await api('/api/step/discover', { method: 'POST', body: { inputs: body.inputs, query_index: qi } });
+      for (const c of r.companies) if (!companies.some((x) => x.domain === c.domain)) { companies.push(c); log(`+ ${c.domain}`); }
+      qi = r.next_query; calls++;
+    } while (!hasInput && qi !== null && companies.length < cap && calls < 6);
+    companies = companies.slice(0, cap);
+    $('#run-found').textContent = `${companies.length} companies`;
+    if (!companies.length) log('No verified companies found. Try again, or paste some domains.');
+    let qualified = 0;
+    for (const c of companies) {
+      try {
+        setStage('news'); log(`Researching ${c.domain} (news, then scraper)…`);
+        const r = await api('/api/step/research', { method: 'POST', body: { domain: c.domain } });
+        if (!r.ok) { log(`  skipped: ${r.note}`); continue; }
+        log(`  ${r.decision} (score ${r.score})${r.passes ? '' : ' - below the threshold, no email'}`);
+        if (!r.passes) continue;
+        qualified++;
+        setStage('poc'); log('  finding the contact and drafting…');
+        const d = await api('/api/step/draft', { method: 'POST', body: { domain: c.domain } });
+        log(d.draft_id ? `  draft ${d.draft_id}: ${d.draft_status}` : '  no named contact; handed to a human');
+      } catch (e) { failures.push(c.domain); log(`  error on ${c.domain}: ${e.message}`); if (/Daily limit/.test(e.message)) break; }
+    }
+    setStage('review', true);
+    $('#run-stage').textContent = 'done';
+    log(`Done: ${qualified} qualified${failures.length ? `, ${failures.length} failed` : ''}.`);
+    await refreshAll();
+    toast(qualified ? `${qualified} qualified. Drafts are in Review.` : 'Run finished: nothing qualified this time.');
+    $('#companies').scrollIntoView({ behavior: 'smooth' });
+  } catch (e) {
+    $('#run-stage').textContent = 'failed'; log(`ERROR: ${e.message}`); toast(e.message, true);
+  } finally { $('#run-btn').disabled = false; }
+}
 
 function startPolling() {
   $('#run-btn').disabled = true;
@@ -334,7 +386,7 @@ function renderReview() {
   layoutStack(false);
   if (pending.length && !reduce) gsap.from('#stack .draft', { y: 80, opacity: 0, rotate: () => gsap.utils.random(-6, 6), stagger: 0.12, duration: 0.6, ease: 'back.out(1.6)', clearProps: 'rotate' });
   $('#approved').innerHTML = approved.length ? approved.map((d) =>
-    `<div class="item"><div><b>${esc(d.company)}</b><small>${esc((d.poc || {}).name || '')} · ${esc((d.poc || {}).email_status || '')}</small></div><button class="btn btn-ink" data-send="${d.id}">${state.status && state.status.mode === 'LIVE' ? 'Send live' : 'Send test'}</button></div>`).join('')
+    `<div class="item"><div><b>${esc(d.company)}</b><small>${esc((d.poc || {}).name || '')} · ${esc((d.poc || {}).email_status || '')}</small></div><span class="item-actions"><button class="btn" data-copy="${d.id}">Copy</button>${state.status && state.status.hosted ? `<button class="btn" data-dl="${d.id}">.eml</button>` : ''}<button class="btn btn-ink" data-send="${d.id}">${state.status && state.status.mode === 'LIVE' ? 'Send live' : 'Send test'}</button></span></div>`).join('')
     : '<p class="fine" style="margin-top:10px">Approved drafts show up here.</p>';
   $('#blocked-tray').hidden = blocked.length === 0;
   $('#blocked').innerHTML = blocked.map((d) => `<div class="item" style="display:block"><b>${esc(d.company)}</b><div class="fail-list">${(d.check.failures || []).map(esc).join('<br>')}</div></div>`).join('');
@@ -384,6 +436,24 @@ $('#b-skip').addEventListener('click', () => {
 $('#b-edit').addEventListener('click', () => { const d = topDraft(); if (!d) return; $('#edit-text').value = d.body; $('#modal').hidden = false; if (!reduce) gsap.from('.modal-card', { scale: 0.85, rotate: -2, opacity: 0, duration: 0.35, ease: 'back.out(2)' }); });
 $('#edit-cancel').addEventListener('click', () => { $('#modal').hidden = true; });
 $('#edit-save').addEventListener('click', async () => { const t = $('#edit-text').value; $('#modal').hidden = true; await decide('edit', t); });
+
+/* Copy / download an approved email (works everywhere; the only route on the public app to send it yourself). */
+document.addEventListener('click', async (e) => {
+  const c = e.target.closest('[data-copy]'), dl = e.target.closest('[data-dl]');
+  const id = (c || dl) && +((c || dl).dataset.copy || (c || dl).dataset.dl);
+  if (!id) return;
+  const d = state.queue.find((x) => x.id === id); if (!d) return;
+  if (c) {
+    try { await navigator.clipboard.writeText(`Subject: ${d.subject}\n\n${d.body}`); toast('Email copied.'); }
+    catch { toast('Could not copy; select the text in the draft instead.', true); }
+  } else {
+    // no To: header on purpose: the public app shows contact addresses masked
+    const eml = `Subject: ${d.subject}\nContent-Type: text/plain; charset=utf-8\n\n${d.body}\n`;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([eml], { type: 'message/rfc822' }));
+    a.download = `${d.domain}.eml`; a.click(); URL.revokeObjectURL(a.href);
+  }
+});
 
 document.addEventListener('click', async (e) => {
   const b = e.target.closest('[data-send]'); if (!b) return;

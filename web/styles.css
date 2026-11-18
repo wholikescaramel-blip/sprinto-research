@@ -166,6 +166,7 @@ h3{font:600 20px/1.2 var(--font);color:var(--ink);margin-bottom:8px;letter-spaci
 .item{border:1px solid rgba(26,22,51,.1);border-radius:14px;padding:11px 14px;margin-top:10px;background:rgba(255,255,255,.7);display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:14px}
 .item small{display:block;color:var(--muted);font-size:12px}
 .item .btn{padding:.4rem .9rem;font-size:13px}
+.item-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .fail-list{font:12px var(--mono);color:#a10f58;margin-top:6px}
 .stack-empty{max-width:420px}
 

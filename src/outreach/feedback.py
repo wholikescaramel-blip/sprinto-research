@@ -90,6 +90,8 @@ def approve_proposal(db: DB, proposal_path: Path, approved: list[int] | None = N
     path = (config_dir or config.CONFIG_DIR) / f"rubric_v{new['version']}.yaml"
     path.write_text(yaml.safe_dump(new, sort_keys=False), encoding="utf-8")
     t = now()
-    db.x("INSERT OR REPLACE INTO rubric_versions(version,path,source_proposal,created_at,updated_at) "
-         "VALUES(?,?,?,?,?)", (new["version"], str(path), str(proposal_path), t, t))
+    db.x("INSERT INTO rubric_versions(version,path,source_proposal,created_at,updated_at) "
+         "VALUES(?,?,?,?,?) ON CONFLICT(version) DO UPDATE SET path=excluded.path, "
+         "source_proposal=excluded.source_proposal, updated_at=excluded.updated_at",
+         (new["version"], str(path), str(proposal_path), t, t))
     return path

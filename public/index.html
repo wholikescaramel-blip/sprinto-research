@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Outreach Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<div class="blob b1" aria-hidden="true"></div>
+<div class="blob b2" aria-hidden="true"></div>
+<div class="blob b3" aria-hidden="true"></div>
+<div id="progress" aria-hidden="true"><i></i></div>
+<div id="demo-banner" class="glass" hidden>Demo data &middot; fictional companies &middot; no API calls</div>
+
+<header class="nav-wrap">
+  <nav class="nav glass" aria-label="Primary">
+    <a class="brand" href="#top"><span class="dot" aria-hidden="true"></span>Outreach</a>
+    <div class="nav-links">
+      <a href="#run">Run</a>
+      <a href="#companies">Companies</a>
+      <a href="#review">Review</a>
+      <a href="#proof">Numbers</a>
+    </div>
+    <span class="mode-chip" id="mode-chip" title="Send mode">TEST</span>
+  </nav>
+</header>
+
+<main id="top">
+<!-- HERO: white space + one design element on the left, glass data on the right -->
+<section class="hero-wrap">
+  <div class="hero-frame">
+    <div class="hero-left">
+      <div class="orb" aria-hidden="true"></div>
+      <div class="ring r1" aria-hidden="true"></div><div class="ring r2" aria-hidden="true"></div><div class="ring r3" aria-hidden="true"></div>
+      <div class="hero-copy">
+        <span class="eyebrow">Sprinto cold outreach &middot; human-reviewed</span>
+        <h1>Cold email,<br>with <em>receipts.</em></h1>
+        <p class="lede">Finds SaaS companies that fit, the right person at each, and a first email where every claim points back to the page it came from.</p>
+        <div class="cta-row">
+          <a class="btn btn-ink" href="#run">Start a run</a>
+          <a class="btn btn-white" href="#review">Review drafts</a>
+        </div>
+        <dl class="mini-stats">
+          <div><dt>Researched</dt><dd id="hs-companies">&ndash;</dd></div>
+          <div><dt>Qualified</dt><dd id="hs-qualified">&ndash;</dd></div>
+          <div><dt>Reviewed</dt><dd id="hs-reviewed">&ndash;</dd></div>
+        </dl>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="gl gl-wait float">
+        <span class="lbl">Waiting for review</span>
+        <b id="h-wait">&ndash;</b>
+        <span class="note">drafts, claims checked</span>
+      </div>
+      <div class="gl gl-draft float">
+        <span class="lbl">Latest draft</span>
+        <p class="h-subject" id="h-subject">No drafts yet</p>
+        <p class="h-hook" id="h-hook">Start a run and the first email appears here.</p>
+        <div class="h-cites" id="h-cites"></div>
+      </div>
+      <div class="gl gl-sys float">
+        <span class="lbl">System</span>
+        <div class="chips" id="status-chips"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section class="band" id="pipeline">
+  <div class="wrap">
+    <h2 class="h2">How it works, <b>in eight steps</b></h2>
+    <div class="panels" id="panels"></div>
+  </div>
+</section>
+
+<!-- RUN -->
+<section class="band" id="run">
+  <div class="wrap run-grid">
+    <div class="panel run-form">
+      <span class="chip-num">Start</span>
+      <h3>Start a run</h3>
+      <p class="muted">Paste company names or domains, one per line. Leave it empty and the system searches for companies that match your ICP. Every one is verified against its own homepage before it is researched.</p>
+      <textarea id="inputs" rows="5" aria-label="Company names or domains, one per line" placeholder="acme.com&#10;Initech Systems&#10;(empty = find companies from the ICP)"></textarea>
+      <div class="row">
+        <label>Companies that should qualify<input type="number" id="min" value="10" min="1" max="50"></label>
+        <label>Cap on companies<input type="number" id="limit" placeholder="no cap" min="1"></label>
+      </div>
+      <button class="btn btn-solid wide" id="run-btn">Start run</button>
+      <p class="fine" id="run-note">Uses Gemini search and Hunter lookups (free tier). Start small.</p>
+    </div>
+    <div class="panel term">
+      <span class="chip-num">Live log</span>
+      <div class="term-head"><b id="run-stage">idle</b><span id="run-found"></span></div>
+      <div class="bar" role="progressbar" aria-label="Run progress"><i id="run-bar"></i></div>
+      <pre id="log" aria-live="polite">Nothing running. Start a run, or open Companies to browse earlier results.</pre>
+    </div>
+  </div>
+</section>
+
+<!-- COMPANIES -->
+<section class="band" id="companies">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 class="h2">Who fits, <b>and why</b></h2>
+      <div class="filters" id="filters" role="group" aria-label="Filter companies">
+        <button class="pill on" data-f="all">All</button>
+        <button class="pill" data-f="qualified">Qualified</button>
+        <button class="pill" data-f="nogo">No-Go / unsure</button>
+      </div>
+    </div>
+    <div class="cards" id="cards"></div>
+    <p class="empty" id="cards-empty" hidden>No companies yet. Start a run above.</p>
+  </div>
+</section>
+
+<!-- REVIEW -->
+<section class="band" id="review">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 class="h2">Your call</h2>
+      <span class="count-chip" id="queue-count">0 waiting</span>
+    </div>
+    <div class="review-grid">
+      <div>
+        <div class="stack" id="stack"></div>
+        <div class="stack-empty panel" id="stack-empty" hidden>
+          <h3>Inbox zero</h3><p class="muted">No drafts waiting for review.</p>
+        </div>
+        <div class="decide" id="decide" hidden>
+          <div class="seg" id="label-seg" role="group" aria-label="Label"><button data-l="good" class="on">Good</button><button data-l="bad">Bad</button></div>
+          <select id="tag" aria-label="Reason tag"></select>
+          <input id="note" aria-label="Note" placeholder="Note (optional)">
+          <div class="actions">
+            <button class="btn btn-white" id="b-discard">Discard</button>
+            <button class="btn btn-white" id="b-skip">Skip</button>
+            <button class="btn btn-white" id="b-edit">Edit</button>
+            <button class="btn btn-solid" id="b-approve">Approve</button>
+          </div>
+        </div>
+      </div>
+      <aside>
+        <div class="panel tray">
+          <span class="chip-num">Ready</span>
+          <h3>Ready to send</h3>
+          <p class="fine" id="send-note"></p>
+          <div id="approved"></div>
+        </div>
+        <div class="panel tray blocked-tray" id="blocked-tray" hidden>
+          <span class="chip-num warn">Blocked</span>
+          <h3>Needs a human</h3>
+          <p class="fine">The claim checker blocked these. Nothing unsupported goes out.</p>
+          <div id="blocked"></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- NUMBERS -->
+<section class="band" id="proof">
+  <div class="wrap stats">
+    <div class="gl"><b class="count" data-k="companies">0</b><span>companies researched</span></div>
+    <div class="gl"><b class="count" data-k="qualified">0</b><span>qualified to contact</span></div>
+    <div class="gl"><b class="count" data-k="reviewed">0</b><span>drafts through review</span></div>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <b>Outreach</b>
+    <span>Every fact has a source. Unknown stays unknown. A human sends.</span>
+    <span class="mono" id="foot-mode"></span>
+  </div>
+</footer>
+
+<!-- TRACE DRAWER -->
+<div id="veil" hidden></div>
+<aside id="drawer" aria-hidden="true" aria-label="Company trace">
+  <button class="x" id="drawer-x" aria-label="Close trace">&times;</button>
+  <div id="drawer-body"></div>
+</aside>
+
+<!-- EDIT MODAL -->
+<div id="modal" hidden role="dialog" aria-modal="true" aria-label="Edit the email">
+  <div class="panel modal-card">
+    <h3>Edit the email</h3>
+    <p class="fine">Your original and your edit are both stored, with a diff.</p>
+    <textarea id="edit-text" rows="14" aria-label="Email text"></textarea>
+    <div class="actions"><button class="btn btn-white" id="edit-cancel">Cancel</button><button class="btn btn-solid" id="edit-save">Save &amp; approve</button></div>
+  </div>
+</div>
+<div id="toasts" role="status" aria-live="polite"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>

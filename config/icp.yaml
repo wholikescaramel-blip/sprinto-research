@@ -20,3 +20,4 @@ discovery:
 poc:
   role_priority: [security, compliance, engineering, founder]
   founder_max_employees: 50
+  hunter_monthly_limit: 50   # your Hunter free plan allows 50 domain searches a month

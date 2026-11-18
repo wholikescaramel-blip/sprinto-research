@@ -188,6 +188,7 @@ class Fetcher:
             pid = self.db.save_page(domain, url, r.status_code, "", [], [])
             return Page(url, r.status_code, "", [], [], pid)
         text, links, emails = parse_html(r.text[:2_000_000], str(r.url))
+        text = text[:100_000]  # bound what we store per page (the hosted database is small)
         pid = self.db.save_page(domain, url, r.status_code, text, links, emails)
         return Page(url, r.status_code, text, links, emails, pid)
 

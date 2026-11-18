@@ -2,10 +2,15 @@
 name = "outreach"
 version = "0.1.0"
 requires-python = ">=3.11"
+# Runtime dependencies (also what Vercel installs for the hosted function).
 dependencies = [
   "httpx", "beautifulsoup4", "trafilatura", "feedparser", "pydantic", "PyYAML",
-  "typer", "pytest", "google-genai", "python-dotenv", "tldextract",
+  "typer", "google-genai", "python-dotenv", "tldextract", "fastapi", "psycopg[binary]",
 ]
+
+[project.optional-dependencies]
+local = ["uvicorn[standard]"]   # run the UI locally: pip install -e ".[local,dev]"
+dev = ["pytest"]
 
 [project.scripts]
 outreach = "outreach.cli:app"

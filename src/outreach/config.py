@@ -31,7 +31,11 @@ def send_mode() -> str:
     return m if m in ("TEST", "LIVE") else "TEST"
 
 
-def db_path() -> Path:
+def db_path():
+    """Postgres URL when DATABASE_URL is set (the hosted app on Neon), else the local SQLite file."""
+    url = env("DATABASE_URL")
+    if url:
+        return url
     return Path(env("OUTREACH_DB") or ROOT / "data" / "outreach.db")
 
 

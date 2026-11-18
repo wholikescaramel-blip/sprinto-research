@@ -182,12 +182,18 @@ def verify_lead(db: DB, fetcher: Fetcher, name: str, domain: str,
 
 
 def icp_search(db: DB, llm, fetcher: Fetcher, icp_cfg: dict, target: int = 20,
-               max_queries: int = 8, resolver: Callable[[str], str] = socket.gethostbyname) -> list[dict]:
-    """Find up to `target` NEW verified companies. Unverifiable leads are dropped, never guessed."""
+               max_queries: int = 8, resolver: Callable[[str], str] = socket.gethostbyname,
+               only_query: int | None = None, max_verify: int | None = None) -> list[dict]:
+    """Find up to `target` NEW verified companies. Unverifiable leads are dropped, never guessed.
+    only_query: run just that one query (the hosted app calls this once per request).
+    max_verify: stop after checking this many leads (each check fetches a homepage), to bound the time."""
     known = {r["domain"] for r in db.q("SELECT domain FROM companies")}
     found: list[dict] = []
-    for q in default_queries(icp_cfg)[:max_queries]:
-        if len(found) >= target:
+    checked = 0
+    queries = default_queries(icp_cfg)
+    queries = [queries[only_query]] if only_query is not None and only_query < len(queries) else queries[:max_queries]
+    for q in queries:
+        if len(found) >= target or (max_verify is not None and checked >= max_verify):
             break
         prompt = (f"Use web search. Find up to {target} REAL companies matching: {q}.\n"
                   "Only list companies you actually found on pages in your search results. "
@@ -200,6 +206,9 @@ def icp_search(db: DB, llm, fetcher: Fetcher, icp_cfg: dict, target: int = 20,
         for name, dom in parse_leads(text):
             if dom in known or any(f["domain"] == dom for f in found):
                 continue
+            if max_verify is not None and checked >= max_verify:
+                break
+            checked += 1
             ok, why, home = verify_lead(db, fetcher, name, dom, resolver)
             if ok:
                 db.upsert_company(dom, name, home, origin="icp_search")
@@ -230,8 +239,13 @@ def resolve_names(db: DB, llm, fetcher: Fetcher, names: list[str],
 
 def read_inputs(path: str | Path) -> tuple[list[str], list[str]]:
     """File lines that are valid domains/URLs -> domains; everything else -> company names."""
+    return parse_inputs(Path(path).read_text(encoding="utf-8"))
+
+
+def parse_inputs(text: str) -> tuple[list[str], list[str]]:
+    """Text lines that are valid domains/URLs -> domains; everything else -> company names."""
     doms, names = [], []
-    for line in Path(path).read_text(encoding="utf-8").splitlines():
+    for line in text.splitlines():
         line = line.split("#")[0].strip()
         if not line:
             continue

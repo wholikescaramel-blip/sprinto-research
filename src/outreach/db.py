@@ -1,8 +1,10 @@
-"""SQLite storage. Every stage reads/writes here so any stage can be re-run alone."""
+"""Storage. SQLite locally (a file), Postgres when given a postgres:// URL (the hosted app on Neon).
+Every stage reads/writes here so any stage can be re-run alone."""
 from __future__ import annotations
 
 import hashlib
 import json
+import re
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
@@ -55,6 +57,22 @@ CREATE TABLE IF NOT EXISTS runs(
 """
 
 
+# Postgres flavour of the same schema (same tables and columns, so everything above the DB layer is identical)
+PG_SCHEMA = SCHEMA.replace("INTEGER PRIMARY KEY AUTOINCREMENT", "SERIAL PRIMARY KEY").replace(" REAL,", " DOUBLE PRECISION,")
+SERIAL_TABLES = {"pages", "drafts", "reviews", "outcomes", "runs"}  # tables with an auto id we hand back
+_PG_READY: set[str] = set()
+_INSERT_RE = re.compile(r"\s*INSERT\s+INTO\s+(\w+)", re.I)
+
+
+def is_pg_url(path) -> bool:
+    return str(path).startswith(("postgres://", "postgresql://"))
+
+
+def pg_sql(sql: str) -> str:
+    """sqlite-style '?' placeholders -> psycopg '%s' (literal % escaped first)."""
+    return sql.replace("%", "%%").replace("?", "%s")
+
+
 def now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
@@ -66,6 +84,20 @@ def fact_id(domain: str, field: str, value: str, source_url: str) -> str:
 
 class DB:
     def __init__(self, path: str | Path = ":memory:"):
+        self.pg = is_pg_url(path)
+        if self.pg:
+            import psycopg
+            from psycopg.rows import dict_row
+            url = str(path)
+            # autocommit + no prepared statements: safe behind Neon's pooled (pgbouncer) endpoint
+            self.conn = psycopg.connect(url, row_factory=dict_row, autocommit=True,
+                                        prepare_threshold=None, connect_timeout=10)
+            if url not in _PG_READY:  # create tables once per process, not on every request
+                for stmt in PG_SCHEMA.split(";"):
+                    if stmt.strip():
+                        self.conn.execute(stmt)
+                _PG_READY.add(url)
+            return
         if str(path) != ":memory:":
             Path(path).parent.mkdir(parents=True, exist_ok=True)
         self.conn = sqlite3.connect(str(path))
@@ -77,15 +109,26 @@ class DB:
         except sqlite3.OperationalError:
             pass  # already renamed / fresh database
 
-    # -- generic helpers
-    def q(self, sql: str, args: Iterable[Any] = ()) -> list[sqlite3.Row]:
-        return self.conn.execute(sql, tuple(args)).fetchall()
+    # -- generic helpers (identical interface on both backends)
+    def _exec(self, sql: str, args: Iterable[Any] = ()):
+        if self.pg:
+            return self.conn.execute(pg_sql(sql), tuple(args))
+        return self.conn.execute(sql, tuple(args))
+
+    def q(self, sql: str, args: Iterable[Any] = ()) -> list:
+        return self._exec(sql, args).fetchall()
 
     def one(self, sql: str, args: Iterable[Any] = ()):
         r = self.q(sql, args)
         return r[0] if r else None
 
     def x(self, sql: str, args: Iterable[Any] = ()) -> int:
+        if self.pg:
+            m = _INSERT_RE.match(sql)
+            if m and m.group(1).lower() in SERIAL_TABLES:
+                return self._exec(sql + " RETURNING id", args).fetchone()["id"]
+            self._exec(sql, args)
+            return 0
         cur = self.conn.execute(sql, tuple(args))
         self.conn.commit()
         return cur.lastrowid
@@ -138,8 +181,9 @@ class DB:
                  snippet: str, page_id: int | None = None) -> str:
         fid = fact_id(domain, field, value, source_url)
         t = now()
-        self.x("""INSERT OR IGNORE INTO facts(id,domain,field,value,source_url,snippet,page_id,
-                  fetched_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)""",
+        self.x("""INSERT INTO facts(id,domain,field,value,source_url,snippet,page_id,
+                  fetched_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)
+                  ON CONFLICT DO NOTHING""",
                (fid, domain, field, value, source_url, snippet, page_id, t, t, t))
         return fid
 
@@ -198,16 +242,19 @@ class DB:
 
     def hunter_store(self, domain: str, response: dict):
         t = now()
-        self.x("""INSERT OR REPLACE INTO hunter_cache(domain,response,fetched_at,created_at,updated_at)
-                  VALUES(?,?,?,?,?)""", (domain, json.dumps(response), t, t, t))
+        self.x("""INSERT INTO hunter_cache(domain,response,fetched_at,created_at,updated_at)
+                  VALUES(?,?,?,?,?) ON CONFLICT(domain) DO UPDATE SET response=excluded.response,
+                  fetched_at=excluded.fetched_at, updated_at=excluded.updated_at""",
+               (domain, json.dumps(response), t, t, t))
 
     def bump_counter(self, name: str, period: str) -> int:
+        """Atomic: concurrent visitors cannot lose an increment. Resets when the period changes."""
         t = now()
-        r = self.one("SELECT value, period FROM counters WHERE name=?", (name,))
-        v = (r["value"] + 1) if (r and r["period"] == period) else 1
-        self.x("""INSERT OR REPLACE INTO counters(name,value,period,created_at,updated_at)
-                  VALUES(?,?,?,?,?)""", (name, v, period, t, t))
-        return v
+        self.x("""INSERT INTO counters(name,value,period,created_at,updated_at) VALUES(?,1,?,?,?)
+                  ON CONFLICT(name) DO UPDATE SET
+                    value = CASE WHEN counters.period = excluded.period THEN counters.value + 1 ELSE 1 END,
+                    period = excluded.period, updated_at = excluded.updated_at""", (name, period, t, t))
+        return self.counter(name, period)
 
     def counter(self, name: str, period: str) -> int:
         r = self.one("SELECT value, period FROM counters WHERE name=?", (name,))

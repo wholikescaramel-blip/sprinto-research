@@ -6,7 +6,7 @@ import json
 
 import typer
 
-from .db import DB
+from .db import DB, now
 from .models import CheckResult
 
 REASON_TAGS = ["wrong_hook", "wrong_person", "too_generic", "tone", "factually_off", "bad_fit", "other"]
@@ -37,9 +37,9 @@ def record_review(db: DB, draft_id: int, action: str, label: str, reason_tag: st
             raise ValueError("edit requires changed text")
         final = final_text
     rid = db.x("""INSERT INTO reviews(draft_id,action,label,reason_tag,note,original_text,final_text,diff,
-                  created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,datetime('now'),datetime('now'))""",
+                  created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)""",
                (draft_id, action, label, reason_tag, note, original, final,
-                make_diff(original, final) if action == "edit" else ""))
+                make_diff(original, final) if action == "edit" else "", now(), now()))
     if action == "discard":
         db.update_draft(draft_id, status="discarded")
     else:  # approve / edit: the (possibly edited) body is what gets delivered

@@ -79,6 +79,16 @@ It runs locally on purpose: keys and SQLite stay on this machine. The Send butto
 ## Hosted demo (Vercel)
 The real app stays local (keys, SQLite). For sharing, `python scripts/build_demo_site.py` builds a static, read-only copy into `demo/`: the same UI reading JSON snapshots of the FICTIONAL demo data, with Run and Send disabled and Approve/Discard applied in the browser only. No keys, database or Python runs on Vercel; deploy the `demo/` folder (Vercel project root directory = `demo`). Rebuild and push to update it.
 
+## Live hosted app (Vercel + Neon)
+`vercel.json` serves `public/` (the same UI, built by `python scripts/build_public.py`) and runs `api/index.py` (the FastAPI app) as a Python function. Differences from the local app, all driven by `PUBLIC_MODE=1`:
+- **Database:** Postgres (Neon, `DATABASE_URL`) instead of the SQLite file; the same code runs on both (`db.py`).
+- **Step API:** serverless functions cannot run for minutes or keep a thread alive, so the page drives a run one company at a time: `/api/step/discover` -> `/api/step/research` -> `/api/step/draft`.
+- **No login, so guard rails instead:** daily caps in the shared DB (`DAILY_RESEARCH_CAP` 40, `DAILY_DRAFT_CAP` 25, `DAILY_DISCOVER_CAP` 30, `DAILY_SEND_CAP` 10), Hunter's monthly counter, and at most 8 companies per run.
+- **Privacy:** contact emails are masked in every API response (`p***@acme.com`); the real address stays in the database for the send gate.
+- **Email:** forced to TEST (a `[TEST]` copy to `MY_EMAIL` only). The public app can never email a stranger; real-recipient LIVE sends exist only in the local app. Approved drafts have Copy and `.eml` buttons.
+- **Env vars on Vercel:** `GEMINI_API_KEY`, `GEMINI_MODEL`, `HUNTER_API_KEY`, `PUBLIC_MODE=1`, `SEND_MODE=TEST`, `DATABASE_URL` (added by the Neon integration), plus `RESEND_API_KEY`, `MAIL_FROM`, `MY_EMAIL` for test sends.
+- Everything in the shared database is visible to every visitor of the public app.
+
 ## Sprinto claims are chosen per prospect
 `config/sprinto_facts.yaml` has a `use_when` hint per claim. The drafter picks the one claim that fits the prospect's verified facts (e.g. trust-center claim for a company with enterprise signals); the checker still rejects any Sprinto statement outside the list.
 

@@ -3,6 +3,16 @@
   "framework": null,
   "installCommand": null,
   "buildCommand": null,
-  "outputDirectory": "demo",
-  "cleanUrls": true
+  "outputDirectory": "public",
+  "cleanUrls": true,
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 300,
+      "includeFiles": "{src/**,config/**}",
+      "excludeFiles": "{tests/**,demo/**,docs/**,web/**,public/**,scripts/**,data/**}"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index" }
+  ]
 }

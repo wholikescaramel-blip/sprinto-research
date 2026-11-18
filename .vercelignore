@@ -1,5 +1,5 @@
-# Only the static demo/ is served. Keep everything else (code, secrets, data) off Vercel's uploads.
-# Patterns are anchored with a leading slash so they only match the repo root (demo/data must be kept).
+# What the CLI uploads to Vercel. Secrets and local data never go up; the function needs src/ and config/.
+# Patterns are anchored to the repo root with a leading slash.
 /.env
 /.env.*
 /credentials.json
@@ -7,12 +7,7 @@
 /data
 /.venv
 /.pytest_cache
-/src
 /tests
-/scripts
-/web
-/config
-/docs
-/pyproject.toml
-/README.md
 /.claude
+/docs
+/demo
