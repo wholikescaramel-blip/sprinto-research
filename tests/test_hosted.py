@@ -10,11 +10,31 @@ from outreach.pipeline import Services
 from test_e2e import make_llm
 
 
+PG_TABLES = ("facts, pages, qualifications, pocs, hunter_cache, counters, drafts, reviews, outcomes, "
+             "rubric_versions, runs, stage_status, companies")
+
+
+def _wipe_pg(url: str):
+    # ONLY for a throwaway/empty database named in TEST_DATABASE_URL. Never point it at real data.
+    import psycopg
+    with psycopg.connect(url, autocommit=True) as c:
+        try:
+            c.execute(f"TRUNCATE {PG_TABLES} RESTART IDENTITY CASCADE")
+        except psycopg.errors.UndefinedTable:
+            pass  # first run: tables do not exist yet
+
+
 @pytest.fixture
 def hosted(tmp_path, monkeypatch):
+    import os
     monkeypatch.setenv("PUBLIC_MODE", "1")
-    monkeypatch.delenv("DATABASE_URL", raising=False)
-    monkeypatch.setenv("OUTREACH_DB", str(tmp_path / "hosted.db"))
+    pg = os.environ.get("TEST_DATABASE_URL")
+    if pg:  # run the same flow on real Postgres (set TEST_DATABASE_URL to an empty scratch database)
+        monkeypatch.setenv("DATABASE_URL", pg)
+        _wipe_pg(pg)
+    else:
+        monkeypatch.delenv("DATABASE_URL", raising=False)
+        monkeypatch.setenv("OUTREACH_DB", str(tmp_path / "hosted.db"))
     monkeypatch.delenv("HUNTER_API_KEY", raising=False)
     monkeypatch.setattr(config, "manual_pocs", lambda: {
         "acmeflow.io": {"name": "Priya Nair", "title": "Head of Security", "email": "priya@acmeflow.io",
@@ -25,7 +45,9 @@ def hosted(tmp_path, monkeypatch):
     monkeypatch.setattr(pipeline, "gap_fill_funding", lambda *a, **k: None)
     monkeypatch.setattr(pipeline, "cheap_filter", lambda *a, **k: None)
     monkeypatch.setattr(api, "llm_factory", lambda: make_llm({}))
-    return TestClient(api.app)
+    yield TestClient(api.app)
+    if pg:
+        _wipe_pg(pg)
 
 
 def test_status_says_hosted_and_forces_test_mode(hosted, monkeypatch):

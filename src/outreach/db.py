@@ -140,8 +140,8 @@ class DB:
         self.x("""INSERT INTO companies(domain,name,source_url,origin,created_at,updated_at)
                   VALUES(?,?,?,?,?,?)
                   ON CONFLICT(domain) DO UPDATE SET
-                    name=COALESCE(excluded.name,name),
-                    source_url=COALESCE(excluded.source_url,source_url),
+                    name=COALESCE(excluded.name,companies.name),
+                    source_url=COALESCE(excluded.source_url,companies.source_url),
                     updated_at=excluded.updated_at""",
                (domain, name, source_url, origin, t, t))
 
