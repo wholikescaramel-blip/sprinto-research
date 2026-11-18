@@ -1,0 +1,6 @@
+# Apollo manual lookups. TODO(user): add entries.
+# example.com:
+#   name: Jane Doe
+#   title: Head of Security
+#   email: jane@example.com
+#   source: apollo_manual

@@ -1,0 +1,11 @@
+version: 1
+drafting_guidance:
+  - Subject line under 8 words.
+  - No buzzwords.
+  - One hook built on one verified fact.
+  - One pain point, phrased as a question.
+  - Greet by first name.
+  - Every claim about the prospect cites a fact id; nothing without one.
+  - Tone is human and short (80-120 words).
+# Soft-signal weight overrides (optional). Hard gates are never changed by the feedback loop.
+soft_weights: {}

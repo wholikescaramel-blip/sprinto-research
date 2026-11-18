@@ -1,0 +1,17 @@
+# Editable library of pain-point HYPOTHESES keyed by role type. Seeded with plausible entries.
+security_head:
+  - {id: sec_evidence, text: "Collecting audit evidence across many tools is slow and manual"}
+  - {id: sec_questionnaires, text: "Enterprise security questionnaires keep landing on the security team"}
+  - {id: sec_continuous, text: "Staying compliant between audits, not just on audit day"}
+cto_vp_eng:
+  - {id: eng_time, text: "Engineers get pulled away from product work to prepare for audits"}
+  - {id: eng_controls, text: "Turning policy requirements into concrete engineering controls"}
+  - {id: eng_enterprise, text: "Enterprise deals stall without a SOC 2 report"}
+compliance_grc:
+  - {id: grc_spreadsheets, text: "Tracking controls and evidence in spreadsheets does not scale"}
+  - {id: grc_multi, text: "Running SOC 2 and ISO 27001 in parallel doubles the work"}
+  - {id: grc_vendor, text: "Vendor risk reviews pile up before every audit"}
+founder_ceo:
+  - {id: ceo_deals, text: "Deals blocked or delayed by customer security reviews"}
+  - {id: ceo_cost, text: "Getting certified fast without hiring a full compliance team"}
+  - {id: ceo_focus, text: "Compliance work distracting a small team from the product"}

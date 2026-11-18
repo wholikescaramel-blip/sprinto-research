@@ -1,0 +1,25 @@
+# The ONLY claims the email may make about Sprinto.
+# Source: sprinto.com homepage, read 2026-11-11 (wording kept close to the page).
+# `text` is the claim (the only thing an email may state). `use_when` is guidance for WHEN a claim is
+# relevant to a prospect; it is not itself a claim. The drafter picks the fitting claim per company.
+# Delete any line you are not comfortable stating; add more as you like. Each needs a stable id.
+signature: |
+  Best,
+  Kay Dee
+  Sprinto
+facts:
+  - id: S1
+    text: "Sprinto covers SOC 2, ISO 27001, HIPAA, GDPR, PCI DSS and 200+ global standards."
+    use_when: "The prospect is preparing for, or juggling, one or more specific frameworks or audits."
+  - id: S2
+    text: "Sprinto monitors your controls around the clock and, when something drifts, closes gaps, refreshes evidence and routes approvals."
+    use_when: "The prospect has a small or stretched team, or evidence collection / audit prep is the likely burden."
+  - id: S3
+    text: "Sprinto has 300+ integrations across cloud, identity, HR and SaaS."
+    use_when: "The prospect clearly runs a cloud/SaaS stack where manual evidence gathering spans many tools."
+  - id: S4
+    text: "Sprinto is trusted by 4,000+ companies from Series A to enterprise."
+    use_when: "Social proof for growth-stage prospects. Use sparingly, never as the main hook."
+  - id: S5
+    text: "Sprinto lets you launch a Trust Center and complete security questionnaires in minutes."
+    use_when: "The prospect sells to enterprises, or has a trust page / security-questionnaire / DPA signal."

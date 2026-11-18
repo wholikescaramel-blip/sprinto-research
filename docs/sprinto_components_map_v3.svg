@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="1700" viewBox="0 0 2000 1700" font-family="'Segoe UI', Arial, Helvetica, sans-serif">
+  <defs>
+    <marker id="ah" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" orient="auto-start-reverse">
+      <path d="M1,1 L10,6 L1,11" fill="none" stroke="#555" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="ahO" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" orient="auto-start-reverse">
+      <path d="M1,1 L10,6 L1,11" fill="none" stroke="#D68910" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="ahP" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" orient="auto-start-reverse">
+      <path d="M1,1 L10,6 L1,11" fill="none" stroke="#A10F58" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <rect width="2000" height="1700" fill="#ffffff"/>
+
+  <!-- title -->
+  <text x="29" y="46" font-size="33" font-weight="700" fill="#2b2b2b">Sprinto cold outreach pipeline: components map (v3)</text>
+  <text x="1971" y="46" font-size="20" text-anchor="end" fill="#A10F58" font-weight="600">Changed: News + RSS now runs BEFORE the scraper; a veto skips scraping</text>
+
+  <!-- header bar -->
+  <rect x="29" y="72" width="1942" height="58" fill="#2b2b2b"/>
+  <g fill="#fff" font-size="25" font-weight="700" text-anchor="middle">
+    <text x="50" y="110" text-anchor="start">Actor</text>
+    <text x="389" y="110">Trigger</text><text x="677" y="110">Input</text><text x="965" y="110">Context</text>
+    <text x="1253" y="110">Processing</text><text x="1541" y="110">AI</text><text x="1829" y="110">Output</text>
+  </g>
+
+  <!-- review gate band -->
+  <rect x="29" y="1289" width="1942" height="144" fill="#FFFBE8" stroke="#E0B03A" stroke-width="3" stroke-dasharray="14 8"/>
+
+  <!-- row separators + column rule -->
+  <g stroke="#D9D9D9" stroke-width="2">
+    <line x1="29" y1="281" x2="1971" y2="281"/><line x1="29" y1="425" x2="1971" y2="425"/>
+    <line x1="29" y1="569" x2="1971" y2="569"/><line x1="29" y1="713" x2="1971" y2="713"/>
+    <line x1="29" y1="857" x2="1971" y2="857"/><line x1="29" y1="1001" x2="1971" y2="1001"/>
+    <line x1="29" y1="1145" x2="1971" y2="1145"/><line x1="29" y1="1577" x2="1971" y2="1577"/>
+    <line x1="245" y1="137" x2="245" y2="1577"/>
+  </g>
+
+  <!-- row labels -->
+  <g font-size="25" font-weight="700" fill="#444">
+    <text x="50" y="217">Growth lead</text><text x="50" y="361">Discovery</text>
+    <text x="50" y="505">News + RSS</text><text x="50" y="649">Scraper</text>
+    <text x="50" y="793">Qualifier</text><text x="50" y="937">PoC finder</text>
+    <text x="50" y="1081">Gemini API</text><text x="50" y="1225">Claim check</text>
+    <text x="50" y="1369">Review gate</text><text x="50" y="1513">Send + learn</text>
+  </g>
+  <!-- small "moved" tags on the two swapped rows -->
+  <g font-size="14" font-weight="700" text-anchor="middle">
+    <rect x="50" y="519" width="132" height="24" rx="12" fill="#A10F58"/><text x="116" y="536" fill="#fff">1st · moved up</text>
+    <rect x="50" y="663" width="132" height="24" rx="12" fill="#6B5BD6"/><text x="116" y="680" fill="#fff">2nd · moved down</text>
+  </g>
+
+  <!-- arrows (dashed, open heads) -->
+  <g fill="none" stroke="#555" stroke-width="3" stroke-dasharray="9 7" marker-end="url(#ah)">
+    <path d="M389,263 V352 H552"/>
+    <path d="M677,407 V496 H840"/>
+    <path d="M965,551 V583"/>
+    <path d="M1088,640 H1253 V727"/>
+    <path d="M1253,839 V871"/>
+    <path d="M1253,983 V1072 H1416"/>
+    <path d="M1664,1072 H1829 V1159"/>
+    <path d="M1829,1271 V1303"/>
+    <path d="M1829,1415 V1447"/>
+    <path d="M1706,1360 H1598 V1447"/>
+  </g>
+  <!-- veto short-circuit -->
+  <path d="M1088,496 H1334 V727" fill="none" stroke="#A10F58" stroke-width="3" stroke-dasharray="3 8" stroke-linecap="round" marker-end="url(#ahP)"/>
+  <text x="1346" y="604" font-size="18" font-weight="700" fill="#A10F58">veto = skip scraper,</text>
+  <text x="1346" y="626" font-size="18" font-weight="700" fill="#A10F58">straight to No-Go</text>
+  <!-- rubric update loop -->
+  <path d="M1482,1447 V1129" fill="none" stroke="#D68910" stroke-width="3" stroke-dasharray="9 7" marker-end="url(#ahO)"/>
+
+  <!-- boxes -->
+  <g stroke-width="3" font-size="23" text-anchor="middle">
+    <!-- grey: human / send -->
+    <g fill="#F0EFEB" stroke="#6B6B6B" color="#444">
+      <rect x="266" y="153" width="246" height="110" rx="10"/>
+      <rect x="1706" y="1305" width="246" height="110" rx="10"/>
+      <rect x="1418" y="1449" width="246" height="110" rx="10"/>
+      <rect x="1706" y="1449" width="246" height="110" rx="10"/>
+    </g>
+    <!-- green: data gathering -->
+    <g fill="#E3F4EC" stroke="#2E9B76">
+      <rect x="554" y="297" width="246" height="110" rx="10"/>
+      <rect x="842" y="441" width="246" height="110" rx="10"/>
+      <rect x="842" y="585" width="246" height="110" rx="10"/>
+      <rect x="1130" y="873" width="246" height="110" rx="10"/>
+    </g>
+    <!-- purple: decision / AI / checks -->
+    <g fill="#EDEBFB" stroke="#6B5BD6">
+      <rect x="1130" y="729" width="246" height="110" rx="10"/>
+      <rect x="1418" y="1017" width="246" height="110" rx="10"/>
+      <rect x="1706" y="1161" width="246" height="110" rx="10"/>
+    </g>
+  </g>
+
+  <!-- box text -->
+  <g font-size="23" text-anchor="middle">
+    <g fill="#444">
+      <text x="389" y="196">Sets ICP YAML</text><text x="389" y="225">+ optional</text><text x="389" y="254">domain list / names</text>
+      <text x="1829" y="1348">Approve, edit,</text><text x="1829" y="1377">or discard;</text><text x="1829" y="1406">tag + reason</text>
+      <text x="1541" y="1492">Feedback log</text><text x="1541" y="1521">edits, tags,</text><text x="1541" y="1550">replies, rubric</text>
+      <text x="1829" y="1492">Gmail send/draft</text><text x="1829" y="1521">TEST: own inbox</text><text x="1829" y="1550">LIVE: real PoC</text>
+    </g>
+    <g fill="#12573F">
+      <text x="677" y="340">Your list or ICP</text><text x="677" y="369">search; domain</text><text x="677" y="398">verified, deduped</text>
+      <text x="965" y="484">Google + RSS</text><text x="965" y="513">bad-news veto</text><text x="965" y="542">fills funding gap</text>
+      <text x="965" y="628">Own scraper</text><text x="965" y="657">site, jobs,</text><text x="965" y="686">trust, about</text>
+      <text x="1253" y="916">Hunter first,</text><text x="1253" y="945">Apollo backup</text><text x="1253" y="974">finds PoC</text>
+    </g>
+    <g fill="#3F328F">
+      <text x="1253" y="772">Gates + score</text><text x="1253" y="801">Go / No-Go</text><text x="1253" y="830">gaps = flag</text>
+      <text x="1541" y="1060">Pain points +</text><text x="1541" y="1089">draft email,</text><text x="1541" y="1118">cites fact IDs</text>
+      <text x="1829" y="1204">Code checks claims</text><text x="1829" y="1233">no fact = block</text><text x="1829" y="1262">or regenerate</text>
+    </g>
+  </g>
+
+  <!-- legend -->
+  <g font-size="21" fill="#444">
+    <rect x="29" y="1608" width="34" height="26" rx="6" fill="#E3F4EC" stroke="#2E9B76" stroke-width="3"/><text x="74" y="1630">Data gathering</text>
+    <rect x="302" y="1608" width="34" height="26" rx="6" fill="#EDEBFB" stroke="#6B5BD6" stroke-width="3"/><text x="347" y="1630">Decision / AI / checks</text>
+    <rect x="662" y="1608" width="34" height="26" rx="6" fill="#F0EFEB" stroke="#6B6B6B" stroke-width="3"/><text x="707" y="1630">Human / send</text>
+    <rect x="934" y="1608" width="34" height="26" rx="4" fill="none" stroke="#E0B03A" stroke-width="3" stroke-dasharray="6 4"/><text x="979" y="1630">Human review gate</text>
+    <path d="M1236,1621 H1280" stroke="#D68910" stroke-width="3" stroke-dasharray="9 7" marker-end="url(#ahO)"/><text x="1300" y="1630">Rubric update (approved by growth lead)</text>
+    <path d="M1760,1621 H1804" stroke="#A10F58" stroke-width="3" stroke-dasharray="3 8" stroke-linecap="round" marker-end="url(#ahP)"/><text x="1822" y="1630">Veto path</text>
+  </g>
+</svg>

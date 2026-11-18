@@ -1,0 +1,22 @@
+icp:
+  company_type: B2B SaaS
+  stages: [Series A, Series B, Series C]
+  employees: {min: 20, max: 500}
+hard_gates: [is_b2b_saas, not_fully_certified_with_competitor]
+weights: {compliance_trigger: 3, stage_fit: 2, eu_regulated: 1}
+send_threshold: 3
+competitors: [Vanta, Drata, Secureframe, Scrut, Thoropass]
+limits:
+  max_fetches_per_company: 8
+  max_llm_extractions_per_company: 1
+  scrape_time_budget_seconds: 30   # wall-clock deadline for scraping one company (0 = off)
+  request_timeout_seconds: 8       # one slow page cannot eat the budget
+  delay_seconds: 1.0               # politeness gap between requests to the same host
+news:
+  lookback_days: 365
+discovery:
+  rss_feeds: []        # TODO(user): fill in. Not invented.
+  directory_pages: []  # TODO(user): fill in. Not invented.
+poc:
+  role_priority: [security, compliance, engineering, founder]
+  founder_max_employees: 50
