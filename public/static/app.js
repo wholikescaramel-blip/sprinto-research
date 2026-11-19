@@ -120,8 +120,6 @@ function setStage(stage, finished) {
 /* ---------------------------------------------------------------- status */
 async function loadStatus() {
   const s = (state.status = await api('/api/status'));
-  const mode = $('#mode-chip');
-  mode.textContent = s.mode; mode.classList.toggle('live', s.mode === 'LIVE');
   $('#foot-mode').textContent = s.readonly ? 'read-only demo · fictional data' : `mode ${s.mode} · ${s.my_email_set ? 'test inbox set' : 'MY_EMAIL missing'}`;
   $('#demo-banner').hidden = !s.demo;
   const sb = $('#samples-bar');

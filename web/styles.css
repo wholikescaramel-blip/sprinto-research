@@ -44,8 +44,6 @@ h3{font:600 20px/1.2 var(--font);color:var(--ink);margin-bottom:8px;letter-spaci
 .nav-links{display:flex;gap:4px}
 .nav-links a{text-decoration:none;font-weight:500;font-size:14px;padding:7px 16px;border-radius:99px;transition:background-color .15s}
 .nav-links a:hover{background:rgba(255,255,255,.2)}
-.mode-chip{font:600 12px var(--font);letter-spacing:.08em;padding:6px 14px;border-radius:99px;border:1px solid var(--glass-border);background:rgba(255,255,255,.18)}
-.mode-chip.live{background:#fff;color:var(--glass-violet);text-shadow:none}
 
 /* buttons: glass by default (on gradient) */
 .btn,.pill{font:600 14px var(--font);padding:.7rem 1.4rem;border:1px solid var(--glass-border);border-radius:.75rem;background:rgba(255,255,255,.1);
@@ -202,8 +200,7 @@ h3{font:600 20px/1.2 var(--font);color:var(--ink);margin-bottom:8px;letter-spaci
   .nav-links{display:none} .stack{height:700px}
 }
 @media(prefers-reduced-transparency:reduce){
-  .glass,.gl,.btn,.pill,.count-chip,.seg,.mode-chip{background:rgba(30,20,60,.85);-webkit-backdrop-filter:none;backdrop-filter:none}
-  .panel,.draft,#drawer{background:#fff;-webkit-backdrop-filter:none;backdrop-filter:none}
+  .glass,.gl,.btn,.pill,.count-chip,.seg,  .panel,.draft,#drawer{background:#fff;-webkit-backdrop-filter:none;backdrop-filter:none}
 }
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto} .btn,.pill{transition:none} .btn:hover,.pill:hover{transform:none} .blob{display:none}
